@@ -47,32 +47,3 @@ export const getImageUrl = (imagePath) => {
     }
     return imagePath;
 };
-
-export const getProductVariant = (row) => {
-    const productData = row.product.data;
-    if (productData.variants && productData.variants.length > 0) {
-        return productData.variants
-            .map((variant) => {
-                const key = Object.keys(variant)[0];
-                const value = variant[key];
-                return key ? value : "";
-            })
-            .join("\n");
-    }
-    return "";
-};
-
-export const getCurrencyIcon = (currency) => {
-    switch (currency) {
-        case "IDR":
-            return "fa-rupiah-sign";
-        case "EUR":
-            return "fa-euro-sign";
-        case "THB":
-            return "fa-baht-sign";
-        case "JPY":
-            return "fa-yen-sign";
-     default:
-        return "fa-dollar-sign";
-    }
-};

@@ -1,2 +1,98 @@
-QHTOOL
-===============
+# QH Fashion AI 🚀
+
+## 1. Giới thiệu dự án
+QH Fashion AI là công cụ hỗ trợ tạo ảnh thời trang bằng AI sử dụng nền tảng **fal.ai** (với mô hình FLUX).
+Dự án được dọn dẹp từ một source code hệ thống quản lý có sẵn, hiện tại hệ thống tập trung hoàn toàn vào vi-nghiệp vụ **AI Image / Video Generation** với cấu trúc tối giản, phân tầng chuyên nghiệp, rất dễ để mở rộng kinh doanh sau này (đóng phí, subscription).
+
+## 2. Công nghệ nền tảng
+- **Backend:** Laravel 12, PHP 8.2+
+- **Frontend:** Vue 3 (Composition API), Inertia.js, TailwindCSS
+- **Database:** MySQL (Chỉ sử dụng 1 kết nối duy nhất: `mysql`)
+- **Queue/Background:** Redis (Xử lý các request AI tốn thời gian hoàn toàn chạy ngầm)
+- **AI Service API:** fal.ai API
+
+---
+
+## 3. Cấu trúc thư mục trọng tâm đáng chú ý
+
+```text
+📦 QH-Fashion-AI
+ ┣ 📂 app
+ ┃ ┣ 📂 Http/Controllers   # ImageGenerationController (Singleton Controller) & ShowLoginController
+ ┃ ┣ 📂 Jobs               # GenerateImageJob.php (Background task xử lý request tới fal.ai)
+ ┃ ┣ 📂 Models             # User.php (phân role, limit_quota) & GeneratedImage.php (History)
+ ┃ ┗ 📂 Services/AI        # FalImageService.php (Class Service giao tiếp với AI API)
+ ┣ 📂 config
+ ┃ ┗ 📜 fal.php            # Cấu hình riêng biệt cho dự án AI (API keys, AI Models)
+ ┣ 📂 database/migrations  # Các bảng cốt lõi: users, generated_images, sessions, jobs, failed_jobs
+ ┣ 📂 public/images
+ ┃ ┣ 📂 models             # Bỏ ảnh người mẫu vào đây (Vue sẽ tự động đọc danh sách này)
+ ┃ ┗ 📂 background         # Bỏ ảnh nền vào đây
+ ┣ 📂 resources/js
+ ┃ ┣ 📂 Pages/Auth         # Login.vue
+ ┃ ┗ 📂 Pages              # ImageGenerator.vue (Trang tạo ảnh phức tạp chính của user)
+ ┗ 📜 routes/web.php       # Rất gọn nhẹ, chứa các Route UI, Store và Polling Status AI
+```
+
+---
+
+## 4. Kiến trúc luồng chạy (Business Flow)
+
+Dự án áp dụng chia thành các tầng rõ ràng (Controller -> Service -> Job):
+
+1. **Frontend UI (ImageGenerator.vue):**
+   - User upload ảnh sản phẩm, form validate kích thước (10MB), drag-drop.
+   - User chọn Người Mẫu và Background (trên bản xem trước trực quan).
+   - Khi bấm "Tạo ảnh": Nút bấm chuyển sang `Đang xử lý`. Frontend sau đó sẽ gọi ngầm polling mỗi `3 giây` về API `/image-generator/{id}/status` chờ kết quả trả về liên tục.
+
+2. **Controller Layer:**
+   - Validate thông tin. **Đặc biệt: Kiểm tra `free_images_left` của user.** Hết lượt báo lỗi.
+   - Lưu ảnh tạm thời xuống storage nội bộ. Thêm mới 1 dòng ghi nhận vào bảng `generated_images` (status: `pending`) và trừ 1 lượt của user.
+   - Dispatch `GenerateImageJob` đẩy vào Redis Queue. Controller lập tức kết thúc và trả về JSON cho frontend (Không hề block HTTP đợi AI chạy).
+
+3. **Background Job & Service:**
+   - Worker nắm lấy `GenerateImageJob` đổi trạng thái DB thành `processing`.
+   - Gọi lên `FalImageService`. Service này giấu logic phúc tạp: Nó chuyển thông số UI ("quán cafe", "nữ điệu") thành 1 **Prompt tiếng Anh xịn xò** chuyên nghiệp + URL ảnh public để feed cho fal.ai.
+   - Chờ API Fal trả kết quả -> Service tải ảnh về server của dự án.
+   - Job đổi trạng thái thành `done` (Lúc này màn hình User sau vài lượt poll 3s sẽ tự động Load hiển thị luôn bức ảnh thành phẩm).
+   - **Bảo hiểm rủi ro:** Nếu gặp `Exception` mạng (fal.ai chập chờn...), catch exception sẽ cập nhật lỗi (`failed`) + Auto hoàn tiền/hoàn Lượt Free lại cho User đó.
+
+---
+
+## 5. Hướng dẫn chạy cục bộ & Mở rộng code
+
+Dự án đã được chốt hạ và ổn định. Khi mở rộng code, bạn chỉ việc gõ thêm Route, tạo DB Migration nếu cần.
+
+### Môi trường chạy
+Yêu cầu hệ thống phải được chạy Artisan Queue liên tục (do xử lý chạy ngầm):
+```bash
+# 1. Refresh tải lại bộ đệm
+composer dump-autoload
+
+# 2. Xóa cài đặt CSDL ban đầu (Tạo 2 tài khoản: Admin & Normal User)
+php artisan migrate:fresh --seed
+
+# 3. Chạy worker lắng nghe Job - chạy vĩnh viễn
+#   (Mỗi khi bạn sửa code ở phần \Jobs, nhớ chạy lệnh: php artisan queue:restart)
+php artisan queue:listen
+
+# 4. Dev Frontend giao diện
+npm run dev
+```
+
+### Các Account để Test theo dạng Limit & Vô hạn
+Sau khi chạy `--seed` như trên:
+- **Tài khoản test Quyền Admin:** `admin@gmail.com` / `123456` (Vô hạn lượt tạo)
+- **Tài khoản test Người Dùng Thường:** `user@gmail.com` / `123456` (1 Account được tặng kèm 3 lần tạo ảnh và 1 lần xử lý video rỗng dự tươn sau này).
+
+### Cấu hình biến môi trường (`.env`)
+```env
+# Nhớ cài đặt Connection và Session sang MySQL
+DB_CONNECTION=mysql
+SESSION_CONNECTION=mysql
+
+QUEUE_CONNECTION=redis
+
+# Cấu hình API fal.ai (có thể mua thêm Token bằng Stripe sau này)
+FAL_AI_KEY="Lấy mã Key tại: https://fal.ai/dashboard/keys"
+```

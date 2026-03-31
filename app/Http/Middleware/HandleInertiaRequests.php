@@ -29,50 +29,13 @@ class HandleInertiaRequests extends Middleware
 
     public function share(Request $request): array
     {
-        $suppliersName = Supplier::select('code', 'data->name as name')
-            ->orderBy('code')->get()->map(function ($supplier) {
-                return [
-                    'code' => $supplier->code,
-                    'name' => "{$supplier->code} : {$supplier->name}",
-                ];
-            });
-
         return array_merge(parent::share($request), [
-            '' => config('microzero.site_urls.zms'),
-            'pms_url' => config('app.url'),
             'user' =>  Auth::user(),
-            'menu' => Config::get('menu'),
+            'promptImage' => env('PROMPIMAGE', ''),
             'flash' => [
                 'message' => fn() => $request->session()->get('message'),
                 'error' => fn() => $request->session()->get('error'),
             ],
-            'zero_url' => config('microzero.site_urls.zero'),
-            'suppliersName' => $suppliersName,
-            'apps' => [
-                [
-                    'title' => 'ZMS',
-                    'image' => '/images/svg/zms.svg',
-                    'url' => Config::get('microzero.site_urls.zms', ''),
-                ],
-                [
-                    'title' => 'PMS',
-                    'image' => '/images/svg/pms.svg',
-                    'url' => Config::get('app.url', ''),
-                    'active' => true,
-                ],
-                [
-                    'title' => 'WMS',
-                    'image' => '/images/svg/wms.svg',
-                    'url' => Config::get('microzero.site_urls.wms', ''),
-                ],
-                [
-                    'title' => 'CRM',
-                    'image' => '/images/icons/crm.png',
-                    'url' => Config::get('microzero.site_urls.crm', ''),
-                ],
-            ],
-            'countries' => getCountries(),
-            'locations' => getLocations(),
         ]);
     }
 }

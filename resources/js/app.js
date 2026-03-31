@@ -1,7 +1,26 @@
-import { createApp, h } from "vue";
-import { createInertiaApp } from "@inertiajs/vue3";
+import { createApp, h, ref } from "vue";
+import { createInertiaApp, router } from "@inertiajs/vue3";
 import ClickOutside from "./v-click-outside.js";
 import "./errorHandler";
+import InertiaLoadingOverlay from "./Components/InertiaLoadingOverlay.vue";
+
+const isLoading = ref(false);
+
+router.on('start', () => {
+    isLoading.value = true;
+});
+
+router.on('finish', () => {
+    isLoading.value = false;
+});
+
+router.on('error', () => {
+    isLoading.value = false;
+});
+
+router.on('navigate', () => {
+    isLoading.value = false;
+});
 
 createInertiaApp({
     progress: false,
@@ -10,7 +29,13 @@ createInertiaApp({
         return pages[`./Pages/${name}.vue`]();
     },
     setup({ el, App, props, plugin }) {
-        const app = createApp({ render: () => h(App, props) }).use(plugin);
+        const app = createApp({
+            render: () =>
+                h('div', [
+                    h(App, props),
+                    h(InertiaLoadingOverlay, { isLoading: isLoading.value }),
+                ]),
+        }).use(plugin);
         app.config.globalProperties.$route = route;
         app.config.globalProperties.$filters = {
             formatNumber(number) {

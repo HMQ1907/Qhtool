@@ -42,9 +42,7 @@
         },
         "files": [
             "app/Helpers/helpers.php",
-            "app/Constants/StatusCodes.php",
-            "app/Constants/Constants.php",
-            "app/Constants/Messages.php"
+            "app/Constants/StatusCodes.php"
         ]
     },
     "autoload-dev": {

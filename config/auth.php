@@ -1,6 +1,6 @@
 <?php
 
-use App\Models\Microzero\User;
+use App\Models\User;
 
 return [
 
