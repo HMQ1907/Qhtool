@@ -53,86 +53,6 @@ return [
                 PDO::MYSQL_ATTR_SSL_CA => env('MYSQL_ATTR_SSL_CA'),
             ]) : [],
         ],
-        'pm' => [
-            'driver' => 'mysql',
-            'url' => env('DATABASE_URL'),
-            'host' => env('DB_PM_HOST', '127.0.0.1'),
-            'port' => env('DB_PM_PORT', '3306'),
-            'database' => env('DB_PM_DATABASE', 'eg-pms-2'),
-            'username' => env('DB_PM_USERNAME', 'forge'),
-            'password' => env('DB_PM_PASSWORD', ''),
-            'unix_socket' => env('DB_PM_SOCKET', ''),
-            'charset' => 'utf8mb4',
-            'collation' => 'utf8mb4_unicode_ci',
-            'prefix' => '',
-            'prefix_indexes' => true,
-            'strict' => true,
-            'engine' => null,
-            'options' => extension_loaded('pdo_mysql') ? array_filter([
-                PDO::MYSQL_ATTR_SSL_CA => env('MYSQL_ATTR_SSL_CA'),
-            ]) : [],
-        ],
-
-        'pm_30' => [
-            'driver' => 'mysql',
-            'url' => env('DATABASE_URL'),
-            'host' => env('DB_PM_HOST', '127.0.0.1'),
-            'port' => env('DB_PM_PORT', '3306'),
-            'database' => env('DB_PM_30_DATABASE', 'eg-pms-2'),
-            'username' => env('DB_PM_USERNAME', 'forge'),
-            'password' => env('DB_PM_PASSWORD', ''),
-            'unix_socket' => env('DB_PM_SOCKET', ''),
-            'charset' => 'utf8mb4',
-            'collation' => 'utf8mb4_unicode_ci',
-            'prefix' => '',
-            'prefix_indexes' => true,
-            'strict' => true,
-            'engine' => null,
-            'options' => extension_loaded('pdo_mysql') ? array_filter([
-                PDO::MYSQL_ATTR_SSL_CA => env('MYSQL_ATTR_SSL_CA'),
-            ]) : [],
-        ],
-
-        
-        'eg_product_shadow' => [
-            'driver' => 'mysql',
-            'url' => env('DATABASE_URL'),
-            'host' => env('DB_PM_HOST', '127.0.0.1'),
-            'port' => env('DB_PM_PORT', '3306'),
-            'database' => env('DB_EG_PRODUCT_SHADOW_DATABASE', 'eg-product-shadow'),
-            'username' => env('DB_PM_USERNAME', 'forge'),
-            'password' => env('DB_PM_PASSWORD', ''),
-            'unix_socket' => env('DB_PM_SOCKET', ''),
-            'charset' => 'utf8mb4',
-            'collation' => 'utf8mb4_unicode_ci',
-            'prefix' => '',
-            'prefix_indexes' => true,
-            'strict' => true,
-            'engine' => null,
-            'options' => extension_loaded('pdo_mysql') ? array_filter([
-                PDO::MYSQL_ATTR_SSL_CA => env('MYSQL_ATTR_SSL_CA'),
-            ]) : [],
-        ],
-
-        'microzero' => [
-            'driver' => 'mysql',
-            'url' => env('DATABASE_URL'),
-            'host' => env('DB_HOST', '127.0.0.1'),
-            'port' => env('DB_PORT', '3306'),
-            'database' => env('DB_MICROZERO_DATABASE', 'forge'),
-            'username' => env('DB_USERNAME', 'forge'),
-            'password' => env('DB_PASSWORD', ''),
-            'unix_socket' => env('DB_SOCKET', ''),
-            'charset' => 'utf8mb4',
-            'collation' => 'utf8mb4_unicode_ci',
-            'prefix' => '',
-            'prefix_indexes' => true,
-            'strict' => true,
-            'engine' => null,
-            'options' => extension_loaded('pdo_mysql') ? array_filter([
-                PDO::MYSQL_ATTR_SSL_CA => env('MYSQL_ATTR_SSL_CA'),
-            ]) : [],
-        ],
 
         'sessions' => [
             'driver'    => 'mysql',
@@ -147,38 +67,6 @@ return [
             'strict'    => false,
         ],
 
-        'eg_zero' => [
-            'driver'    => 'mysql',
-            'host'      => env('DB_TH_WEBIKE_HOST', '127.0.0.1'),
-            'port'      => env('DB_TH_WEBIKE_PORT', '3306'),
-            'username'  => env('DB_TH_WEBIKE_USERNAME', 'root'),
-            'password'  => env('DB_TH_WEBIKE_PASSWORD', 'root'),
-            'database'  => env('DB_TH_WEBIKE_EG_ZERO_DATABASE', 'eg_zero'),
-            'charset'   => 'utf8',
-            'collation' => 'utf8_unicode_ci',
-            'prefix'    => '',
-            'strict'    => false,
-        ],
-
-        'wfm' => [
-            'driver' => 'mysql',
-            'url' => env('DATABASE_URL'),
-            'host' => env('DB_HOST', '127.0.0.1'),
-            'port' => env('DB_PORT', '3306'),
-            'database' => env('DB_MICROZERO_WFM_DATABASE', 'forge'),
-            'username' => env('DB_USERNAME', 'forge'),
-            'password' => env('DB_PASSWORD', ''),
-            'unix_socket' => env('DB_SOCKET', ''),
-            'charset' => 'utf8mb4',
-            'collation' => 'utf8mb4_unicode_ci',
-            'prefix' => '',
-            'prefix_indexes' => true,
-            'strict' => true,
-            'engine' => null,
-            'options' => extension_loaded('pdo_mysql') ? array_filter([
-                PDO::MYSQL_ATTR_SSL_CA => env('MYSQL_ATTR_SSL_CA'),
-            ]) : [],
-        ],
     ],
 
     /*
@@ -231,7 +119,5 @@ return [
             'port' => env('REDIS_PORT', '6379'),
             'database' => env('REDIS_CACHE_DB', '1'),
         ],
-
     ],
-
 ];

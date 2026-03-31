@@ -50,7 +50,7 @@
                 class="flex w-full items-center justify-between rounded-2xl px-3 py-3 text-left text-sm font-semibold text-white transition hover:bg-white/10 disabled:cursor-not-allowed disabled:opacity-60"
                 @click="goToImageGenerator"
               >
-                <span>Về tạo ảnh</span>
+                <span>Tạo ảnh</span>
                 <span v-if="navTarget === 'back'" class="h-3.5 w-3.5 animate-spin rounded-full border-2 border-white/25 border-t-white"></span>
                 <span v-else class="text-white/35">›</span>
               </button>

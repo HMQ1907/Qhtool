@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Auth\ShowLoginController;
+use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\LogoutController;
 use App\Http\Controllers\ImageGeneration\IndexImageGenerationController;
 use App\Http\Controllers\ImageGeneration\StatusImageGenerationController;
@@ -11,6 +12,9 @@ use Illuminate\Support\Facades\Route;
 
 // ── Authentication ────────────────────────────────────────────────────────────
 Route::get('/login', ShowLoginController::class)->name('login');
+Route::post('/login', LoginController::class)
+    ->middleware('guest')
+    ->name('login.store');
 Route::post('/logout', LogoutController::class)
     ->middleware('auth')
     ->name('logout');

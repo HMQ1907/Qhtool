@@ -15,9 +15,7 @@
       <section class="relative mx-auto max-w-7xl px-4 pb-14 pt-5 sm:px-6 lg:px-8">
         <div class="flex items-center justify-between gap-4 rounded-full border border-white/10 bg-white/5 px-4 py-3 backdrop-blur-xl">
           <div class="flex items-center gap-3">
-            <div class="flex h-11 w-11 items-center justify-center rounded-2xl bg-gradient-to-br from-cyan-400 via-sky-500 to-indigo-500 shadow-lg shadow-cyan-500/20">
-              <span class="text-sm font-black tracking-[0.24em]">AI</span>
-            </div>
+            <img :src="qhLogoUrl" alt="QH Fashion AI" class="h-11 w-11 rounded-2xl shadow-lg shadow-cyan-500/20" />
             <div>
               <p class="text-sm font-semibold text-white">QH Fashion AI</p>
               <p class="text-xs text-white/60">Tạo ảnh và video thời trang trong vài chục giây</p>
@@ -181,9 +179,7 @@
         <div class="grid gap-6 lg:grid-cols-[280px_minmax(0,1fr)]">
           <aside class="h-fit rounded-[30px] border border-white/10 bg-white/5 p-5 shadow-2xl shadow-slate-950/20 backdrop-blur-xl lg:sticky lg:top-4">
             <div class="flex items-center gap-3 border-b border-white/10 pb-5">
-              <div class="flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-cyan-400 via-sky-500 to-indigo-500 shadow-lg shadow-cyan-500/20">
-                <span class="text-sm font-black tracking-[0.24em]">AI</span>
-              </div>
+              <img :src="qhLogoUrl" alt="QH Fashion AI" class="h-12 w-12 rounded-2xl shadow-lg shadow-cyan-500/20" />
               <div>
                 <p class="text-sm font-semibold text-white">QH Fashion AI</p>
                 <p class="text-xs text-white/50">Công cụ dành cho shop thời trang</p>
@@ -747,6 +743,7 @@ const navTarget = ref(null)
 const profileMenuOpen = ref(false)
 const profileMenuRef = ref(null)
 const profileMenuButtonRef = ref(null)
+const qhLogoUrl = `${import.meta.env.BASE_URL}images/icons/qh-fashion-logo.svg`
 
 const sampleProductImage = computed(() => `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(`
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 1000">
