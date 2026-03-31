@@ -3,7 +3,7 @@
 namespace App\Jobs;
 
 use App\Models\GeneratedImage;
-use App\Services\AI\FalImageService;
+use App\Services\AI\ImageGenerationService;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
@@ -46,7 +46,7 @@ class GenerateImageJob implements ShouldQueue
     /**
      * Pipeline xử lý generate ảnh, chia làm 5 bước rõ ràng.
      */
-    public function handle(FalImageService $falService): void
+    public function handle(ImageGenerationService $aiService): void
     {
         Log::info("[GenerateImageJob] Bắt đầu xử lý ID: {$this->generatedImage->id}");
 
@@ -61,21 +61,19 @@ class GenerateImageJob implements ShouldQueue
             $bgName     = $this->extractNameFromPath($this->generatedImage->background_path);
             $userPrompt = $this->generatedImage->prompt;
 
-            $prompt = $falService->buildPrompt($modelName, $bgName, $userPrompt);
+            $prompt = $aiService->buildPrompt($modelName, $bgName, $userPrompt);
 
             Log::info("[GenerateImageJob] Prompt đã build", ['prompt' => $prompt]);
 
             // ── Bước 3: Gọi fal.ai API ──────────────────────────────────────────
             // Cần URL công khai của ảnh sản phẩm và người mẫu để truyền cho fal.ai
+            $sourceImagePath  = Storage::disk('public')->path($this->generatedImage->input_image_path);
             $productImageUrl = $this->getPublicUrl($this->generatedImage->input_image_path, true);
             $modelImageUrl   = url($this->generatedImage->model_path);
 
-            $resultImageUrl = $falService->generateImage($prompt, $productImageUrl, $modelImageUrl);
-
             // ── Bước 4: Download và lưu ảnh kết quả ──────────────────────────────
-            // Download ảnh từ fal.ai URL về server để tránh URL bị expire
             $filename   = 'img_' . $this->generatedImage->id . '_' . Str::random(8);
-            $savedPath  = $falService->downloadAndSave($resultImageUrl, $filename);
+            $savedPath  = $aiService->generateImage($prompt, $sourceImagePath, $productImageUrl, $modelImageUrl, $filename);
 
             // ── Bước 5: Cập nhật DB status → done ────────────────────────────────
             // Frontend đang poll → sẽ thấy done và hiển thị ảnh ngay

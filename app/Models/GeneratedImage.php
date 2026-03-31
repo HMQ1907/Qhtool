@@ -99,4 +99,9 @@ class GeneratedImage extends Model
             'error_message' => $errorMessage,
         ]);
     }
+
+    public function user()
+    {
+        return $this->belongsTo(User::class);
+    }
 }
