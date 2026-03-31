@@ -1,0 +1,15 @@
+<?php
+
+define('DONE_CODE', 200);
+define('CREATED_CODE', 201);
+define('DELETED_CODE', 204);
+define('BAD_REQUEST_CODE', 400);
+define('PERMISSIONS_CODE', 401);
+define('FORBIDDEN_CODE', 403);
+define('NOT_FOUND_CODE', 404);
+define('REQUEST_TIMEOUT_CODE', 408);
+define('CONFLICT_CODE', 409);
+define('GONE_CODE', 410);
+define('UNSUPPORTED_MEDIA_TYPE_CODE', 415);
+define('UNPROCESSABLE_CODE', 422);
+define('ERROR_CODE', 500);

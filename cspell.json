@@ -1,0 +1,25 @@
+{
+  "version": "0.2",
+  "language": "en,vi",
+  "ignoreWords": [
+    "webike",
+    "axios",
+    "Swal",
+    "notyf",
+    "inertiajs",
+    "stylesheet",
+    "Sarabun",
+    "mpdf",
+    "pcre",
+    "beanstalkd",
+    "vite",
+    "fontdata",
+    "Maatwebsite",
+    "Microzero",
+    "Spatie",
+    "ARGB",
+    "Gridlines",
+    "timediff"
+  ],
+
+}
