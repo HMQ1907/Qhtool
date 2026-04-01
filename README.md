@@ -91,11 +91,11 @@ Sau khi chạy `--seed` như trên:
 DB_CONNECTION=mysql
 SESSION_CONNECTION=mysql
 
-QUEUE_CONNECTION=sync
+QUEUE_CONNECTION=database
 
 # Cấu hình API EvoLink
 EVOLINK_API_KEY="Lấy mã Key tại: https://evolink.ai/"
-EVOLINK_IMAGE_MODEL=nano-banana-pro
+EVOLINK_IMAGE_MODEL=gemini-3.1-flash-image-preview
 EVOLINK_VIDEO_MODEL=kling-v3-text-to-video
 EVOLINK_IMAGE_QUALITY=2K
 EVOLINK_VIDEO_DURATION=5

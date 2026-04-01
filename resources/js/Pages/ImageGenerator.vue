@@ -1047,8 +1047,16 @@ async function generateImage() {
     outputUrl.value = null
     errorMessage.value = null
 
+    const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content || ''
+
     const response = await fetch('/image-generator', {
       method: 'POST',
+      credentials: 'same-origin',
+      headers: {
+        'Accept': 'application/json',
+        'X-Requested-With': 'XMLHttpRequest',
+        'X-CSRF-TOKEN': csrfToken,
+      },
       body: formData,
     })
 

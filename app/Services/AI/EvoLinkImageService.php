@@ -27,14 +27,19 @@ class EvoLinkImageService
 
     public function generateImage(
         string $prompt,
-        string $productImageUrl,
-        string $modelImageUrl,
+        string $sourceImagePath,
+        string $modelImagePath,
+        string $backgroundImagePath,
         string $filename
     ): string {
         $task = $this->client->createImageTask([
-            'model' => config('ai.evolink.image_model', 'nano-banana-pro'),
+            'model' => config('ai.evolink.image_model', 'gemini-3.1-flash-image-preview'),
             'prompt' => $prompt,
-            'image_urls' => array_values(array_filter([$productImageUrl, $modelImageUrl])),
+            'image_urls' => array_values(array_filter([
+                $this->toDataUri($sourceImagePath),
+                $this->toDataUri($modelImagePath),
+                $this->toDataUri($backgroundImagePath),
+            ])),
             'quality' => config('ai.evolink.image_quality', '2K'),
         ]);
 
@@ -57,5 +62,22 @@ class EvoLinkImageService
         }
 
         return $this->client->downloadResult($imageUrl, $filename, 'generated/images', 'jpg');
+    }
+
+    private function toDataUri(string $path): string
+    {
+        if (!is_file($path)) {
+            throw new RuntimeException("Không tìm thấy file ảnh: {$path}");
+        }
+
+        $contents = file_get_contents($path);
+
+        if ($contents === false) {
+            throw new RuntimeException("Không thể đọc file ảnh: {$path}");
+        }
+
+        $mimeType = mime_content_type($path) ?: 'application/octet-stream';
+
+        return sprintf('data:%s;base64,%s', $mimeType, base64_encode($contents));
     }
 }

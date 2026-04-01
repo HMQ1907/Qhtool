@@ -3,7 +3,7 @@
 return [
     'evolink' => [
         'api_key' => env('EVOLINK_API_KEY', ''),
-        'image_model' => env('EVOLINK_IMAGE_MODEL', 'nano-banana-pro'),
+        'image_model' => env('EVOLINK_IMAGE_MODEL', 'gemini-3.1-flash-image-preview'),
         'video_model' => env('EVOLINK_VIDEO_MODEL', 'kling-v3-text-to-video'),
         'image_quality' => env('EVOLINK_IMAGE_QUALITY', '2K'),
         'video_duration' => (int) env('EVOLINK_VIDEO_DURATION', 5),

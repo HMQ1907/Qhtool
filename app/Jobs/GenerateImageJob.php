@@ -66,14 +66,20 @@ class GenerateImageJob implements ShouldQueue
             Log::info("[GenerateImageJob] Prompt đã build", ['prompt' => $prompt]);
 
             // ── Bước 3: Gọi EvoLink API ────────────────────────────────────────
-            // Cần URL công khai của ảnh sản phẩm và người mẫu để truyền cho EvoLink
+            // Encode ảnh thành Base64 để EvoLink không phụ thuộc vào URL công khai.
             $sourceImagePath  = Storage::disk('public')->path($this->generatedImage->input_image_path);
-            $productImageUrl = $this->getPublicUrl($this->generatedImage->input_image_path, true);
-            $modelImageUrl   = url($this->generatedImage->model_path);
+            $modelImagePath   = public_path(ltrim($this->generatedImage->model_path, '/'));
+            $backgroundImagePath = public_path(ltrim($this->generatedImage->background_path, '/'));
 
             // ── Bước 4: Download và lưu ảnh kết quả ──────────────────────────────
             $filename   = 'img_' . $this->generatedImage->id . '_' . Str::random(8);
-            $savedPath  = $aiService->generateImage($prompt, $sourceImagePath, $productImageUrl, $modelImageUrl, $filename);
+            $savedPath  = $aiService->generateImage(
+                $prompt,
+                $sourceImagePath,
+                $modelImagePath,
+                $backgroundImagePath,
+                $filename
+            );
 
             // ── Bước 5: Cập nhật DB status → done ────────────────────────────────
             // Frontend đang poll → sẽ thấy done và hiển thị ảnh ngay
@@ -110,21 +116,6 @@ class GenerateImageJob implements ShouldQueue
         $cleanName = str_replace(['-', '_'], ' ', $filename);
 
         return $cleanName;
-    }
-
-    /**
-     * Lấy URL công khai của ảnh (cần thiết khi truyền cho EvoLink).
-     *
-     * @param string $path       Đường dẫn ảnh
-     * @param bool   $isStorage  true nếu ảnh nằm trong storage/app/public
-     */
-    private function getPublicUrl(string $path, bool $isStorage = false): string
-    {
-        if ($isStorage) {
-            return url(Storage::url($path));
-        }
-
-        return url($path);
     }
 
     /**
