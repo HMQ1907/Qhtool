@@ -230,7 +230,7 @@ function goToCreateImage() {
 }
 
 function goToVideoCreator() {
-  navigateTo('/image-generator', 'video')
+  navigateTo('/image-generator?panel=video', 'video')
 }
 
 function goToLogout() {

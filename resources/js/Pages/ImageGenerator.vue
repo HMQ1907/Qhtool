@@ -590,7 +590,7 @@
                     <p class="text-xs font-semibold uppercase tracking-[0.24em] text-white/45">Kết quả</p>
                     <h3 class="mt-1 text-xl font-black text-white">Video thành phẩm</h3>
                   </div>
-                  <span v-if="videoStatus === 'processing'" class="rounded-full bg-amber-400/15 px-3 py-1 text-xs font-semibold text-amber-200">Đang tạo video (~40-60s)</span>
+                  <span v-if="videoStatus === 'pending' || videoStatus === 'processing'" class="rounded-full bg-amber-400/15 px-3 py-1 text-xs font-semibold text-amber-200">Đang tạo video (~40-60s)</span>
                   <span v-else-if="videoStatus === 'done'" class="rounded-full bg-emerald-400/15 px-3 py-1 text-xs font-semibold text-emerald-200">Hoàn tất</span>
                 </div>
 
@@ -602,7 +602,7 @@
                   </div>
                 </div>
 
-                <div v-else-if="videoStatus === 'processing'" class="grid min-h-[620px] place-items-center rounded-[28px] border border-white/10 bg-white/5 p-8 text-center">
+                <div v-else-if="videoStatus === 'pending' || videoStatus === 'processing'" class="grid min-h-[620px] place-items-center rounded-[28px] border border-white/10 bg-white/5 p-8 text-center">
                   <div>
                     <div class="mx-auto h-16 w-16 animate-spin rounded-full border-4 border-white/10 border-t-amber-400"></div>
                     <p class="mt-5 text-lg font-semibold text-white">Đang tạo video (~40-60s)</p>
@@ -610,25 +610,24 @@
                   </div>
                 </div>
 
-                <div v-else class="overflow-hidden rounded-[28px] border border-white/10 bg-white/5">
+                <div v-else-if="videoStatus === 'done'" class="overflow-hidden rounded-[28px] border border-white/10 bg-white/5">
                   <div class="relative min-h-[620px] overflow-hidden bg-slate-950">
-                    <img
-                      :src="selectedVideoSource?.url || outputUrl || sampleBackdropImage"
-                      alt="Video nền"
-                      class="absolute inset-0 h-full w-full object-cover opacity-50"
-                    />
-                    <div class="absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(255,255,255,0.12),transparent_28%),linear-gradient(180deg,rgba(7,11,26,0.2),rgba(7,11,26,0.88))]"></div>
+                    <video
+                      v-if="videoOutputUrl"
+                      class="h-[620px] w-full bg-black object-contain"
+                      controls
+                      playsinline
+                      :src="videoOutputUrl"
+                    ></video>
 
-                    <div class="relative z-10 grid min-h-[620px] place-items-center p-6">
+                    <div v-else class="relative z-10 grid min-h-[620px] place-items-center p-6">
                       <div class="w-full max-w-xl rounded-[30px] border border-white/10 bg-white/5 p-4 shadow-2xl backdrop-blur-xl">
                         <div class="relative overflow-hidden rounded-[24px] border border-white/10 bg-slate-950">
-                          <div class="motion-frame">
-                            <img
-                              :src="selectedVideoSource?.url || outputUrl || sampleBackdropImage"
-                              alt="Ảnh nguồn video"
-                              class="h-[420px] w-full object-cover"
-                            />
-                          </div>
+                          <img
+                            :src="selectedVideoSource?.url || outputUrl || sampleBackdropImage"
+                            alt="Ảnh nguồn video"
+                            class="h-[420px] w-full object-cover"
+                          />
                           <div class="absolute inset-0 bg-gradient-to-t from-slate-950/55 via-transparent to-transparent"></div>
                           <div class="absolute inset-x-0 bottom-0 p-5">
                             <p class="text-xs font-semibold uppercase tracking-[0.22em] text-white/55">Video đã tạo</p>
@@ -636,21 +635,39 @@
                             <p class="mt-2 text-sm text-white/60">Xem trước chuyển động theo phong cách bán hàng.</p>
                           </div>
                         </div>
-                        <div class="mt-4 flex flex-wrap items-center justify-between gap-3 rounded-[22px] border border-white/10 bg-slate-950/60 px-4 py-3">
-                          <div>
-                            <p class="text-sm font-semibold text-white">{{ selectedVideoSource?.title || 'Ảnh nguồn' }}</p>
-                            <p class="text-xs text-white/45">{{ selectedVideoSource?.createdAt || 'Mẫu hiện tại' }}</p>
-                          </div>
-                          <button
-                            type="button"
-                            class="cursor-pointer rounded-full bg-white px-4 py-2 text-sm font-semibold text-slate-950 transition hover:-translate-y-0.5"
-                            @click="activePanel = 'image'"
-                          >
-                            Tạo ảnh khác
-                          </button>
-                        </div>
                       </div>
                     </div>
+
+                    <div class="border-t border-white/10 p-4">
+                      <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                        <div>
+                          <p class="text-sm font-semibold text-white">{{ selectedVideoSource?.title || 'Ảnh nguồn' }}</p>
+                          <p class="text-xs text-white/45">{{ selectedVideoSource?.createdAt || 'Mẫu hiện tại' }}</p>
+                        </div>
+                        <button
+                          type="button"
+                          class="cursor-pointer rounded-full bg-white px-4 py-2 text-sm font-semibold text-slate-950 transition hover:-translate-y-0.5"
+                          @click="activePanel = 'image'"
+                        >
+                          Tạo ảnh khác
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div v-else class="grid min-h-[620px] place-items-center rounded-[28px] border border-white/10 bg-white/5 p-8 text-center">
+                  <div>
+                    <div class="mx-auto flex h-16 w-16 items-center justify-center rounded-[24px] bg-rose-500/10 text-3xl text-rose-200">!</div>
+                    <p class="mt-5 text-lg font-semibold text-white">Tạo video thất bại</p>
+                    <p class="mt-2 text-sm text-white/55">{{ videoErrorMessage || 'Đã có lỗi xảy ra. Vui lòng thử lại.' }}</p>
+                    <button
+                      type="button"
+                      class="cursor-pointer mt-5 rounded-full bg-white/10 px-4 py-2 text-sm font-semibold text-white transition hover:bg-white/15"
+                      @click="videoStatus = 'idle'"
+                    >
+                      Thử lại
+                    </button>
                   </div>
                 </div>
               </div>
@@ -674,6 +691,14 @@ const props = defineProps({
 })
 
 const page = usePage()
+const getInitialPanel = () => {
+  try {
+    const url = new URL(page.url, window.location.origin)
+    return url.searchParams.get('panel') === 'video' ? 'video' : 'image'
+  } catch {
+    return 'image'
+  }
+}
 
 const fileInput = ref(null)
 const productFile = ref(null)
@@ -683,7 +708,7 @@ const selectedModel = ref(props.models[0]?.path ?? null)
 const selectedBg = ref(props.backgrounds[0]?.path ?? null)
 const selectedStyle = ref('gen-z')
 
-const activePanel = ref('image')
+const activePanel = ref(getInitialPanel())
 const errors = ref({})
 const isGenerating = ref(false)
 const currentStatus = ref(null)
@@ -693,6 +718,9 @@ const pollInterval = ref(null)
 
 const videoStatus = ref('idle')
 const videoGenerating = ref(false)
+const videoOutputUrl = ref(null)
+const videoErrorMessage = ref(null)
+const videoPollInterval = ref(null)
 const selectedAnimation = ref('quay-nhe')
 const selectedVideoSourceId = ref(null)
 const imagePrompt = ref('')
@@ -1097,30 +1125,105 @@ function useThisImageForVideo() {
   activePanel.value = 'video'
   selectedVideoSourceId.value = 'current-image'
   videoStatus.value = 'idle'
+  videoGenerating.value = false
+  videoOutputUrl.value = null
+  videoErrorMessage.value = null
 }
 
 function useHistoryImageForVideo(item) {
   activePanel.value = 'video'
   selectedVideoSourceId.value = item.id
   videoStatus.value = 'idle'
+  videoGenerating.value = false
+  videoOutputUrl.value = null
+  videoErrorMessage.value = null
 }
 
-function generateVideo() {
+function clearVideoPolling() {
+  if (videoPollInterval.value) {
+    clearInterval(videoPollInterval.value)
+    videoPollInterval.value = null
+  }
+}
+
+function startVideoPolling(id) {
+  clearVideoPolling()
+
+  videoPollInterval.value = window.setInterval(async () => {
+    try {
+      const response = await fetch(`/video-generator/${id}/status`)
+      const data = await response.json()
+
+      videoStatus.value = data.status
+
+      if (data.status === 'done') {
+        videoOutputUrl.value = data.output_url
+        videoGenerating.value = false
+        clearVideoPolling()
+      } else if (data.status === 'failed') {
+        videoErrorMessage.value = data.error_message
+        videoGenerating.value = false
+        clearVideoPolling()
+      }
+    } catch (error) {
+      console.warn('[Video Poll] Lỗi tạm thời:', error.message)
+    }
+  }, 4000)
+}
+
+async function generateVideo() {
   if (!selectedVideoSource.value) {
     return
   }
 
-  videoGenerating.value = true
-  videoStatus.value = 'processing'
-
-  if (!videoPrompt.value.trim()) {
-    videoPrompt.value = promptTemplate.value || defaultImagePrompt.value
+  const payload = {
+    source_image_url: selectedVideoSource.value.url,
+    source_image_title: selectedVideoSource.value.title,
+    animation: selectedAnimation.value,
+    prompt: videoPrompt.value.trim() || promptTemplate.value || defaultImagePrompt.value,
+    duration: 5,
+    aspect_ratio: '16:9',
+    quality: '720p',
+    sound: 'off',
   }
 
-  window.setTimeout(() => {
+  const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content || ''
+
+  videoGenerating.value = true
+  videoStatus.value = 'pending'
+  videoOutputUrl.value = null
+  videoErrorMessage.value = null
+
+  try {
+    const response = await fetch('/video-generator', {
+      method: 'POST',
+      headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json',
+        'X-CSRF-TOKEN': csrfToken,
+      },
+      body: JSON.stringify(payload),
+    })
+
+    if (!response.ok) {
+      const data = await response.json().catch(() => ({}))
+      if (response.status === 422 && data.errors) {
+        videoErrorMessage.value = Object.values(data.errors).flat()[0] || 'Dữ liệu video không hợp lệ.'
+        videoStatus.value = 'failed'
+        videoGenerating.value = false
+        return
+      }
+
+      throw new Error(data.message || 'Đã có lỗi xảy ra khi tạo video.')
+    }
+
+    const result = await response.json()
+    startVideoPolling(result.id)
+  } catch (error) {
+    videoStatus.value = 'failed'
+    videoErrorMessage.value = error.message
     videoGenerating.value = false
-    videoStatus.value = 'done'
-  }, 2400)
+  }
 }
 
 function runGuestDemo() {
@@ -1186,6 +1289,7 @@ watch(
 
 onBeforeUnmount(() => {
   clearPolling()
+  clearVideoPolling()
   clearTimeout(guestDemoTimer.value)
   if (productPreview.value) {
     URL.revokeObjectURL(productPreview.value)

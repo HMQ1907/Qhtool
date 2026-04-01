@@ -1,7 +1,7 @@
 # QH Fashion AI 🚀
 
 ## 1. Giới thiệu dự án
-QH Fashion AI là công cụ hỗ trợ tạo ảnh thời trang bằng AI sử dụng nền tảng **fal.ai** (với mô hình FLUX).
+Dự án QH Fashion AI là công cụ hỗ trợ tạo ảnh và video thời trang bằng AI sử dụng nền tảng **EvoLink** với các model như **Nano Banana Pro** và **Kling 3.0**.
 Dự án được dọn dẹp từ một source code hệ thống quản lý có sẵn, hiện tại hệ thống tập trung hoàn toàn vào vi-nghiệp vụ **AI Image / Video Generation** với cấu trúc tối giản, phân tầng chuyên nghiệp, rất dễ để mở rộng kinh doanh sau này (đóng phí, subscription).
 
 ## 2. Công nghệ nền tảng
@@ -9,7 +9,7 @@ Dự án được dọn dẹp từ một source code hệ thống quản lý có
 - **Frontend:** Vue 3 (Composition API), Inertia.js, TailwindCSS
 - **Database:** MySQL (Chỉ sử dụng 1 kết nối duy nhất: `mysql`)
 - **Queue/Background:** Redis (Xử lý các request AI tốn thời gian hoàn toàn chạy ngầm)
-- **AI Service API:** fal.ai API
+- **AI Service API:** EvoLink API
 
 ---
 
@@ -19,11 +19,11 @@ Dự án được dọn dẹp từ một source code hệ thống quản lý có
 📦 QH-Fashion-AI
  ┣ 📂 app
  ┃ ┣ 📂 Http/Controllers   # ImageGenerationController (Singleton Controller) & ShowLoginController
- ┃ ┣ 📂 Jobs               # GenerateImageJob.php (Background task xử lý request tới fal.ai)
+ ┃ ┣ 📂 Jobs               # GenerateImageJob.php (Background task xử lý request tới EvoLink)
  ┃ ┣ 📂 Models             # User.php (phân role, limit_quota) & GeneratedImage.php (History)
- ┃ ┗ 📂 Services/AI        # FalImageService.php (Class Service giao tiếp với AI API)
+ ┃ ┗ 📂 Services/AI        # EvoLinkImageService.php (Class Service giao tiếp với AI API)
  ┣ 📂 config
- ┃ ┗ 📜 fal.php            # Cấu hình riêng biệt cho dự án AI (API keys, AI Models)
+ ┃ ┗ 📜 ai.php             # Cấu hình riêng biệt cho dự án AI (API keys, AI Models)
  ┣ 📂 database/migrations  # Các bảng cốt lõi: users, generated_images, sessions, jobs, failed_jobs
  ┣ 📂 public/images
  ┃ ┣ 📂 models             # Bỏ ảnh người mẫu vào đây (Vue sẽ tự động đọc danh sách này)
@@ -52,10 +52,10 @@ Dự án áp dụng chia thành các tầng rõ ràng (Controller -> Service -> 
 
 3. **Background Job & Service:**
    - Worker nắm lấy `GenerateImageJob` đổi trạng thái DB thành `processing`.
-   - Gọi lên `FalImageService`. Service này giấu logic phúc tạp: Nó chuyển thông số UI ("quán cafe", "nữ điệu") thành 1 **Prompt tiếng Anh xịn xò** chuyên nghiệp + URL ảnh public để feed cho fal.ai.
-   - Chờ API Fal trả kết quả -> Service tải ảnh về server của dự án.
+   - Gọi lên `EvoLinkImageService`. Service này giấu logic phúc tạp: Nó chuyển thông số UI ("quán cafe", "nữ điệu") thành 1 **Prompt tiếng Anh xịn xò** chuyên nghiệp + URL ảnh public để feed cho EvoLink.
+   - Chờ API EvoLink trả kết quả -> Service tải ảnh về server của dự án.
    - Job đổi trạng thái thành `done` (Lúc này màn hình User sau vài lượt poll 3s sẽ tự động Load hiển thị luôn bức ảnh thành phẩm).
-   - **Bảo hiểm rủi ro:** Nếu gặp `Exception` mạng (fal.ai chập chờn...), catch exception sẽ cập nhật lỗi (`failed`) + Auto hoàn tiền/hoàn Lượt Free lại cho User đó.
+   - **Bảo hiểm rủi ro:** Nếu gặp `Exception` mạng (EvoLink chập chờn...), catch exception sẽ cập nhật lỗi (`failed`) + Auto hoàn tiền/hoàn Lượt Free lại cho User đó.
 
 ---
 
@@ -93,6 +93,13 @@ SESSION_CONNECTION=mysql
 
 QUEUE_CONNECTION=redis
 
-# Cấu hình API fal.ai (có thể mua thêm Token bằng Stripe sau này)
-FAL_AI_KEY="Lấy mã Key tại: https://fal.ai/dashboard/keys"
+# Cấu hình API EvoLink
+EVOLINK_API_KEY="Lấy mã Key tại: https://evolink.ai/"
+EVOLINK_IMAGE_MODEL=nano-banana-pro
+EVOLINK_VIDEO_MODEL=kling-v3-text-to-video
+EVOLINK_IMAGE_QUALITY=2K
+EVOLINK_VIDEO_DURATION=5
+EVOLINK_VIDEO_ASPECT_RATIO=16:9
+EVOLINK_VIDEO_QUALITY=720p
+EVOLINK_VIDEO_SOUND=off
 ```

@@ -18,7 +18,7 @@ use Throwable;
  * Job xử lý việc generate ảnh AI ở background.
  *
  * Tại sao phải dùng Queue?
- * - fal.ai generate mất 20-30 giây → không thể block HTTP request
+ * - EvoLink generate mất 20-30 giây → không thể block HTTP request
  * - Nếu xử lý sync: user phải chờ 30s, timeout, UX tệ
  * - Queue Redis: dispatch ngay lập tức, worker xử lý nền, user poll kết quả
  * - Scale được: khi cần, chạy nhiều worker song song
@@ -29,13 +29,13 @@ class GenerateImageJob implements ShouldQueue
 
     /**
      * Số lần retry nếu job thất bại.
-     * Giới hạn 2 lần để tránh spam API và tốn credit fal.ai.
+      * Giới hạn 2 lần để tránh spam API và tốn credit EvoLink.
      */
     public int $tries = 2;
 
     /**
      * Timeout tối đa cho job (giây).
-     * fal.ai có thể mất tới 60s cho ảnh phức tạp.
+      * EvoLink có thể mất tới 60s cho ảnh phức tạp.
      */
     public int $timeout = 120;
 
@@ -65,8 +65,8 @@ class GenerateImageJob implements ShouldQueue
 
             Log::info("[GenerateImageJob] Prompt đã build", ['prompt' => $prompt]);
 
-            // ── Bước 3: Gọi fal.ai API ──────────────────────────────────────────
-            // Cần URL công khai của ảnh sản phẩm và người mẫu để truyền cho fal.ai
+            // ── Bước 3: Gọi EvoLink API ────────────────────────────────────────
+            // Cần URL công khai của ảnh sản phẩm và người mẫu để truyền cho EvoLink
             $sourceImagePath  = Storage::disk('public')->path($this->generatedImage->input_image_path);
             $productImageUrl = $this->getPublicUrl($this->generatedImage->input_image_path, true);
             $modelImageUrl   = url($this->generatedImage->model_path);
@@ -113,7 +113,7 @@ class GenerateImageJob implements ShouldQueue
     }
 
     /**
-     * Lấy URL công khai của ảnh (cần thiết khi truyền cho fal.ai).
+     * Lấy URL công khai của ảnh (cần thiết khi truyền cho EvoLink).
      *
      * @param string $path       Đường dẫn ảnh
      * @param bool   $isStorage  true nếu ảnh nằm trong storage/app/public

@@ -8,6 +8,7 @@ use App\Http\Controllers\ImageGeneration\StatusImageGenerationController;
 use App\Http\Controllers\ImageGeneration\StoreImageGenerationController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ReportErrorController;
+use App\Http\Controllers\VideoGeneration\StoreVideoGenerationController;
 use Illuminate\Support\Facades\Route;
 
 // ── Authentication ────────────────────────────────────────────────────────────
@@ -32,6 +33,13 @@ Route::middleware(['auth'])->group(function () {
 
     Route::get('/image-generator/{id}/status', StatusImageGenerationController::class)
         ->name('image-generator.status')
+        ->whereNumber('id');
+
+    Route::post('/video-generator', StoreVideoGenerationController::class)
+        ->name('video-generator.store');
+
+    Route::get('/video-generator/{id}/status', StatusVideoGenerationController::class)
+        ->name('video-generator.status')
         ->whereNumber('id');
 });
 Route::post('report-errors', ReportErrorController::class)->name('report-errors');
