@@ -8,7 +8,7 @@ Dự án được dọn dẹp từ một source code hệ thống quản lý có
 - **Backend:** Laravel 12, PHP 8.2+
 - **Frontend:** Vue 3 (Composition API), Inertia.js, TailwindCSS
 - **Database:** MySQL (Chỉ sử dụng 1 kết nối duy nhất: `mysql`)
-- **Queue/Background:** Redis (Xử lý các request AI tốn thời gian hoàn toàn chạy ngầm)
+- **Queue/Background:** Laravel queue theo cấu hình hiện tại của `.env` (mặc định local có thể chạy `sync`, khi cần tách worker thì đổi sang driver phù hợp)
 - **AI Service API:** EvoLink API
 
 ---
@@ -48,14 +48,14 @@ Dự án áp dụng chia thành các tầng rõ ràng (Controller -> Service -> 
 2. **Controller Layer:**
    - Validate thông tin. **Đặc biệt: Kiểm tra `free_images_left` của user.** Hết lượt báo lỗi.
    - Lưu ảnh tạm thời xuống storage nội bộ. Thêm mới 1 dòng ghi nhận vào bảng `generated_images` (status: `pending`) và trừ 1 lượt của user.
-   - Dispatch `GenerateImageJob` đẩy vào Redis Queue. Controller lập tức kết thúc và trả về JSON cho frontend (Không hề block HTTP đợi AI chạy).
+   - Dispatch `GenerateImageJob` vào queue hiện tại. Controller lập tức kết thúc và trả về JSON cho frontend (không block HTTP đợi AI chạy).
 
 3. **Background Job & Service:**
    - Worker nắm lấy `GenerateImageJob` đổi trạng thái DB thành `processing`.
-   - Gọi lên `EvoLinkImageService`. Service này giấu logic phúc tạp: Nó chuyển thông số UI ("quán cafe", "nữ điệu") thành 1 **Prompt tiếng Anh xịn xò** chuyên nghiệp + URL ảnh public để feed cho EvoLink.
-   - Chờ API EvoLink trả kết quả -> Service tải ảnh về server của dự án.
-   - Job đổi trạng thái thành `done` (Lúc này màn hình User sau vài lượt poll 3s sẽ tự động Load hiển thị luôn bức ảnh thành phẩm).
-   - **Bảo hiểm rủi ro:** Nếu gặp `Exception` mạng (EvoLink chập chờn...), catch exception sẽ cập nhật lỗi (`failed`) + Auto hoàn tiền/hoàn Lượt Free lại cho User đó.
+   - Gọi lên `EvoLinkImageService`. Service này chuyển thông số UI ("quán cafe", "nữ điệu") thành prompt tiếng Anh chuyên nghiệp + URL ảnh public để feed cho EvoLink.
+   - Chờ API EvoLink trả kết quả rồi tải ảnh về server của dự án.
+   - Job đổi trạng thái thành `done` để màn hình User poll và hiển thị ảnh thành phẩm.
+   - **Bảo hiểm rủi ro:** Nếu gặp `Exception` mạng, catch exception sẽ cập nhật lỗi (`failed`) và hoàn lại lượt cho User đó.
 
 ---
 
@@ -91,7 +91,7 @@ Sau khi chạy `--seed` như trên:
 DB_CONNECTION=mysql
 SESSION_CONNECTION=mysql
 
-QUEUE_CONNECTION=redis
+QUEUE_CONNECTION=sync
 
 # Cấu hình API EvoLink
 EVOLINK_API_KEY="Lấy mã Key tại: https://evolink.ai/"
