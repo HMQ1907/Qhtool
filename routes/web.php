@@ -8,6 +8,7 @@ use App\Http\Controllers\ImageGeneration\StatusImageGenerationController;
 use App\Http\Controllers\ImageGeneration\StoreImageGenerationController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ReportErrorController;
+use App\Http\Controllers\VideoGeneration\StatusVideoGenerationController;
 use App\Http\Controllers\VideoGeneration\StoreVideoGenerationController;
 use Illuminate\Support\Facades\Route;
 
