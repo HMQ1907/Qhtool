@@ -64,7 +64,7 @@ abstract class ImageGenerationController extends Controller
             ->map(function (GeneratedImage $image) {
                 return [
                     'id' => $image->id,
-                    'url' => Storage::url($image->output_image_path),
+                    'url' => $this->resolveOutputUrl($image->output_image_path),
                     'status' => $image->status,
                     'created_at' => $image->created_at?->format('d/m H:i'),
                 ];
@@ -86,5 +86,18 @@ abstract class ImageGenerationController extends Controller
                 $fieldName => 'Đường dẫn ảnh không hợp lệ.',
             ]);
         }
+    }
+
+    protected function resolveOutputUrl(?string $path): ?string
+    {
+        if (empty($path)) {
+            return null;
+        }
+
+        if (filter_var($path, FILTER_VALIDATE_URL)) {
+            return $path;
+        }
+
+        return Storage::url($path);
     }
 }

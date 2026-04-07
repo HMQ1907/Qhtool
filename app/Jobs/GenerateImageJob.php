@@ -4,6 +4,8 @@ namespace App\Jobs;
 
 use App\Models\GeneratedImage;
 use App\Services\AI\ImageGenerationService;
+use App\Jobs\CleanupSupabaseUploadedFilesJob;
+use App\Services\SupabaseStorageService;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
@@ -46,17 +48,17 @@ class GenerateImageJob implements ShouldQueue
     /**
      * Pipeline xử lý generate ảnh, chia làm 5 bước rõ ràng.
      */
-    public function handle(ImageGenerationService $aiService): void
+    public function handle(ImageGenerationService $aiService, SupabaseStorageService $supabaseStorage): void
     {
         Log::info("[GenerateImageJob] Bắt đầu xử lý ID: {$this->generatedImage->id}");
 
+        $uploadedObjects = [];
+
         try {
-            // ── Bước 1: Cập nhật status → processing ──────────────────────────
-            // Frontend đang poll field này. Cập nhật ngay để user thấy "đang xử lý"
+            // ── Bước 1: Update status → processing ──────────────────────────
             $this->generatedImage->markAsProcessing();
 
             // ── Bước 2: Build prompt từ input của user ──────────────────────────
-            // Chuyển thông tin người dùng chọn thành prompt chuyên nghiệp cho AI
             $modelName  = $this->extractNameFromPath($this->generatedImage->model_path);
             $bgName     = $this->extractNameFromPath($this->generatedImage->background_path);
             $userPrompt = $this->generatedImage->prompt;
@@ -65,28 +67,50 @@ class GenerateImageJob implements ShouldQueue
 
             Log::info("[GenerateImageJob] Prompt đã build", ['prompt' => $prompt]);
 
-            // ── Bước 3: Gọi EvoLink API ────────────────────────────────────────
-            // Encode ảnh thành Base64 để EvoLink không phụ thuộc vào URL công khai.
-            $sourceImagePath  = Storage::disk('public')->path($this->generatedImage->input_image_path);
-            $modelImagePath   = public_path(ltrim($this->generatedImage->model_path, '/'));
+            // ── Bước 3: Upload image to Supabase -> get url public ─────────
+            $sourceImagePath = Storage::disk('public')->path($this->generatedImage->input_image_path);
+            $modelImagePath = public_path(ltrim($this->generatedImage->model_path, '/'));
             $backgroundImagePath = public_path(ltrim($this->generatedImage->background_path, '/'));
 
-            // ── Bước 4: Download và lưu ảnh kết quả ──────────────────────────────
-            $filename   = 'img_' . $this->generatedImage->id . '_' . Str::random(8);
-            $savedPath  = $aiService->generateImage(
-                $prompt,
+            $sourceUpload = $supabaseStorage->uploadPublicFile(
                 $sourceImagePath,
+                'image-generation/' . $this->generatedImage->id,
+                'product'
+            );
+            $uploadedObjects[] = $sourceUpload['path'];
+
+            $modelUpload = $supabaseStorage->uploadPublicFile(
                 $modelImagePath,
+                'image-generation/' . $this->generatedImage->id,
+                'model'
+            );
+            $uploadedObjects[] = $modelUpload['path'];
+
+            $backgroundUpload = $supabaseStorage->uploadPublicFile(
                 $backgroundImagePath,
+                'image-generation/' . $this->generatedImage->id,
+                'background'
+            );
+            $uploadedObjects[] = $backgroundUpload['path'];
+
+            // ── Bước 4: Get result public url from EvoLink ───────────────────────────────
+            $filename   = 'img_' . $this->generatedImage->id . '_' . Str::random(8);
+            $resultUrl  = $aiService->generateImage(
+                $prompt,
+                $sourceUpload['url'],
+                $modelUpload['url'],
+                $backgroundUpload['url'],
                 $filename
             );
 
-            // ── Bước 5: Cập nhật DB status → done ────────────────────────────────
+            // ── Bước 5: update DB status → done ────────────────────────────────
             // Frontend đang poll → sẽ thấy done và hiển thị ảnh ngay
-            $this->generatedImage->markAsDone($savedPath);
+            $this->generatedImage->markAsDone($resultUrl);
+
+            CleanupSupabaseUploadedFilesJob::dispatch($uploadedObjects);
 
             Log::info("[GenerateImageJob] Hoàn thành ID: {$this->generatedImage->id}", [
-                'output_path' => $savedPath,
+                'output_path' => $resultUrl,
             ]);
 
         } catch (Throwable $e) {

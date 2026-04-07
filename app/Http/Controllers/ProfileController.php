@@ -4,7 +4,6 @@ namespace App\Http\Controllers;
 
 use App\Models\GeneratedImage;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -23,7 +22,7 @@ class ProfileController extends Controller
             ->map(function (GeneratedImage $image) {
                 return [
                     'id' => $image->id,
-                    'url' => Storage::url($image->output_image_path),
+                    'url' => $this->resolveOutputUrl($image->output_image_path),
                     'status' => $image->status,
                     'prompt' => $image->prompt,
                     'created_at' => $image->created_at?->format('d/m H:i'),
@@ -35,5 +34,18 @@ class ProfileController extends Controller
         return Inertia::render('Profile', [
             'recentImages' => $recentImages,
         ]);
+    }
+
+    private function resolveOutputUrl(?string $path): ?string
+    {
+        if (empty($path)) {
+            return null;
+        }
+
+        if (filter_var($path, FILTER_VALIDATE_URL)) {
+            return $path;
+        }
+
+        return \Illuminate\Support\Facades\Storage::url($path);
     }
 }

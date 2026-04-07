@@ -95,7 +95,7 @@ QUEUE_CONNECTION=database
 
 # Cấu hình API EvoLink
 EVOLINK_API_KEY="Lấy mã Key tại: https://evolink.ai/"
-EVOLINK_IMAGE_MODEL=gemini-3.1-flash-image-preview
+EVOLINK_IMAGE_MODEL=nano-banana-pro-beta
 EVOLINK_VIDEO_MODEL=kling-v3-text-to-video
 EVOLINK_IMAGE_QUALITY=2K
 EVOLINK_VIDEO_DURATION=5
@@ -103,3 +103,16 @@ EVOLINK_VIDEO_ASPECT_RATIO=16:9
 EVOLINK_VIDEO_QUALITY=720p
 EVOLINK_VIDEO_SOUND=off
 ```
+
+### Supabase Storage
+
+```env
+SUPABASE_URL=https://your-project-ref.supabase.co
+SUPABASE_PUBLIC_URL=https://your-project-ref.supabase.co
+SUPABASE_SERVICE_ROLE_KEY=your-supabase-service-role-key
+SUPABASE_STORAGE_BUCKET=QHTOOL
+```
+
+`SUPABASE_URL` lấy ở Supabase Dashboard > Project Settings > API > Project URL. `SUPABASE_SERVICE_ROLE_KEY` cũng ở trang đó, mục `service_role` secret. `SUPABASE_STORAGE_BUCKET` là tên bucket trong Storage, và phải khớp đúng từng ký tự với tên bucket thật, ví dụ `QHTOOL`.
+
+Bucket nên để `public`, vì backend sẽ upload ảnh sản phẩm/người mẫu/background lên Supabase rồi lấy public URL để gửi sang EvoLink.

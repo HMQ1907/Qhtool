@@ -20,7 +20,7 @@ class StatusImageGenerationController extends ImageGenerationController
         ];
 
         if ($generatedImage->isDone() && $generatedImage->output_image_path) {
-            $response['output_url'] = Storage::url($generatedImage->output_image_path);
+            $response['output_url'] = $this->resolveOutputUrl($generatedImage->output_image_path);
         }
 
         return response()->json($response);

@@ -15,16 +15,16 @@ class ImageGenerationService
 
     public function generateImage(
         string $prompt,
-        string $sourceImagePath,
-        string $modelImagePath,
-        string $backgroundImagePath,
+        string $sourceImageUrl,
+        string $modelImageUrl,
+        string $backgroundImageUrl,
         string $filename
     ): string {
         return $this->evoLinkImageService->generateImage(
             $prompt,
-            $sourceImagePath,
-            $modelImagePath,
-            $backgroundImagePath,
+            $sourceImageUrl,
+            $modelImageUrl,
+            $backgroundImageUrl,
             $filename,
         );
     }
