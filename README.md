@@ -57,6 +57,12 @@ Dự án áp dụng chia thành các tầng rõ ràng (Controller -> Service -> 
    - Job đổi trạng thái thành `done` để màn hình User poll và hiển thị ảnh thành phẩm.
    - **Bảo hiểm rủi ro:** Nếu gặp `Exception` mạng, catch exception sẽ cập nhật lỗi (`failed`) và hoàn lại lượt cho User đó.
 
+5. **Video cleanup (xoa sub/watermark co dinh):**
+   - User upload video goc, backend luu file tam vao `storage/app/public/uploads/videos`.
+   - He thong tao record `video_cleanups`, dispatch `ProcessVideoCleanupJob` va frontend polling qua `/video-cleanup/{id}/status`.
+   - `VideoCleanupService` dung `ffprobe` lay kich thuoc video, sau do chay `ffmpeg delogo` vao vung subtitle/watermark duoc cau hinh bang ty le `%`.
+   - Ket qua tra ra file mp4 moi trong `storage/app/public/cleaned/videos`.
+
 ---
 
 ## 5. Hướng dẫn chạy cục bộ & Mở rộng code
@@ -102,6 +108,16 @@ EVOLINK_VIDEO_DURATION=5
 EVOLINK_VIDEO_ASPECT_RATIO=16:9
 EVOLINK_VIDEO_QUALITY=720p
 EVOLINK_VIDEO_SOUND=off
+
+# Video cleanup
+FFMPEG_BIN=ffmpeg
+FFPROBE_BIN=ffprobe
+VIDEO_CLEANUP_TIMEOUT=900
+VIDEO_CLEANUP_LEFT_PCT=34
+VIDEO_CLEANUP_TOP_PCT=86
+VIDEO_CLEANUP_WIDTH_PCT=31
+VIDEO_CLEANUP_HEIGHT_PCT=9
+VIDEO_CLEANUP_BAND=14
 ```
 
 ### Supabase Storage

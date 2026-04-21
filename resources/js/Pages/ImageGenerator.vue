@@ -673,6 +673,153 @@
               </div>
             </section>
 
+            <section v-else-if="activePanel === 'cleanup'" class="grid gap-6 xl:grid-cols-[0.95fr_1.05fr]">
+              <div class="space-y-5 rounded-[32px] border border-white/10 bg-[#0b1024]/90 p-5 shadow-2xl shadow-slate-950/20 backdrop-blur-xl">
+                <div>
+                  <p class="text-xs font-semibold uppercase tracking-[0.24em] text-white/45">Tool phu</p>
+                  <h3 class="mt-2 text-xl font-black text-white">Xoa sub / watermark o day video</h3>
+                  <p class="mt-1 text-sm text-white/55">Hop voi video co dong sub hoac watermark nam co dinh nhu vi tri ban khoanh do.</p>
+                </div>
+
+                <div class="rounded-[26px] border border-white/10 bg-white/5 p-4">
+                  <label class="mb-3 block text-sm font-semibold text-white">1. Upload video</label>
+                  <input
+                    ref="cleanupFileInput"
+                    type="file"
+                    accept="video/mp4,video/quicktime,video/webm,video/x-msvideo,video/x-matroska,.mp4,.mov,.webm,.avi,.mkv"
+                    class="hidden"
+                    @change="handleCleanupVideoSelect"
+                  />
+                  <button
+                    type="button"
+                    class="cursor-pointer flex w-full items-center justify-center rounded-[22px] border border-dashed border-white/15 bg-[#091022] px-5 py-10 text-center transition hover:border-cyan-400/60 hover:bg-cyan-400/5"
+                    @click="triggerCleanupFilePicker"
+                  >
+                    <span v-if="cleanupVideoFile" class="block">
+                      <span class="block text-sm font-semibold text-white">{{ cleanupVideoFile.name }}</span>
+                      <span class="mt-1 block text-xs text-white/45">Click de doi video khac</span>
+                    </span>
+                    <span v-else class="block">
+                      <span class="block text-sm font-semibold text-white">Chon video can xoa sub</span>
+                      <span class="mt-1 block text-xs text-white/45">Ho tro mp4, mov, webm, avi, mkv. Toi da 100MB.</span>
+                    </span>
+                  </button>
+                  <p v-if="cleanupErrors.video" class="mt-2 text-xs text-rose-300">{{ cleanupErrors.video }}</p>
+                </div>
+
+                <div class="rounded-[26px] border border-white/10 bg-white/5 p-4">
+                  <div class="mb-3">
+                    <label class="block text-sm font-semibold text-white">2. Vung xoa subtitle (%)</label>
+                    <p class="mt-1 text-xs text-white/45">Mac dinh da set theo mau ban khoanh. Neu video lech vi tri, chinh 4 thong so nay.</p>
+                  </div>
+
+                  <div class="grid gap-3 sm:grid-cols-2">
+                    <label class="block">
+                      <span class="mb-2 block text-xs font-semibold uppercase tracking-[0.2em] text-white/40">left %</span>
+                      <input v-model.number="cleanupRegion.left_pct" type="number" min="0" max="95" step="0.1" class="w-full rounded-[18px] border border-white/10 bg-[#091022] px-4 py-3 text-sm text-white outline-none transition focus:border-cyan-400" />
+                      <span v-if="cleanupErrors.left_pct" class="mt-2 block text-xs text-rose-300">{{ cleanupErrors.left_pct }}</span>
+                    </label>
+                    <label class="block">
+                      <span class="mb-2 block text-xs font-semibold uppercase tracking-[0.2em] text-white/40">top %</span>
+                      <input v-model.number="cleanupRegion.top_pct" type="number" min="0" max="95" step="0.1" class="w-full rounded-[18px] border border-white/10 bg-[#091022] px-4 py-3 text-sm text-white outline-none transition focus:border-cyan-400" />
+                      <span v-if="cleanupErrors.top_pct" class="mt-2 block text-xs text-rose-300">{{ cleanupErrors.top_pct }}</span>
+                    </label>
+                    <label class="block">
+                      <span class="mb-2 block text-xs font-semibold uppercase tracking-[0.2em] text-white/40">width %</span>
+                      <input v-model.number="cleanupRegion.width_pct" type="number" min="0.1" max="100" step="0.1" class="w-full rounded-[18px] border border-white/10 bg-[#091022] px-4 py-3 text-sm text-white outline-none transition focus:border-cyan-400" />
+                      <span v-if="cleanupErrors.width_pct" class="mt-2 block text-xs text-rose-300">{{ cleanupErrors.width_pct }}</span>
+                    </label>
+                    <label class="block">
+                      <span class="mb-2 block text-xs font-semibold uppercase tracking-[0.2em] text-white/40">height %</span>
+                      <input v-model.number="cleanupRegion.height_pct" type="number" min="0.1" max="100" step="0.1" class="w-full rounded-[18px] border border-white/10 bg-[#091022] px-4 py-3 text-sm text-white outline-none transition focus:border-cyan-400" />
+                      <span v-if="cleanupErrors.height_pct" class="mt-2 block text-xs text-rose-300">{{ cleanupErrors.height_pct }}</span>
+                    </label>
+                  </div>
+                </div>
+
+                <button
+                  type="button"
+                  class="cursor-pointer w-full rounded-[22px] bg-gradient-to-r from-cyan-400 via-sky-500 to-blue-600 px-5 py-4 text-base font-black text-white shadow-2xl shadow-cyan-500/20 transition hover:scale-[1.01] disabled:cursor-not-allowed disabled:opacity-60"
+                  :disabled="cleanupGenerating"
+                  @click="processCleanupVideo"
+                >
+                  <span v-if="!cleanupGenerating">Upload va xoa sub</span>
+                  <span v-else>Dang xu ly video...</span>
+                </button>
+              </div>
+
+              <div class="rounded-[32px] border border-white/10 bg-[#0b1024]/90 p-5 shadow-2xl shadow-slate-950/20 backdrop-blur-xl">
+                <div class="flex items-center justify-between gap-4 border-b border-white/10 pb-4">
+                  <div>
+                    <p class="text-xs font-semibold uppercase tracking-[0.24em] text-white/45">Ket qua</p>
+                    <h3 class="mt-1 text-xl font-black text-white">Video da xoa sub</h3>
+                  </div>
+                  <span v-if="cleanupStatus === 'pending' || cleanupStatus === 'processing'" class="rounded-full bg-cyan-400/15 px-3 py-1 text-xs font-semibold text-cyan-200">Dang xu ly</span>
+                  <span v-else-if="cleanupStatus === 'done'" class="rounded-full bg-emerald-400/15 px-3 py-1 text-xs font-semibold text-emerald-200">Hoan tat</span>
+                </div>
+
+                <div v-if="cleanupStatus === 'idle'" class="grid min-h-[620px] place-items-center rounded-[28px] border border-dashed border-white/10 bg-[radial-gradient(circle_at_top,rgba(255,255,255,0.06),transparent_38%)] p-8 text-center">
+                  <div>
+                    <div class="mx-auto flex h-20 w-20 items-center justify-center rounded-[28px] bg-white/5 text-3xl">[]</div>
+                    <p class="mt-5 text-lg font-semibold text-white">Video ket qua se hien o day</p>
+                    <p class="mt-2 text-sm leading-6 text-white/50">Upload video, giu vung xoa mac dinh hoac chinh tay neu watermark lech.</p>
+                  </div>
+                </div>
+
+                <div v-else-if="cleanupStatus === 'pending' || cleanupStatus === 'processing'" class="grid min-h-[620px] place-items-center rounded-[28px] border border-white/10 bg-white/5 p-8 text-center">
+                  <div>
+                    <div class="mx-auto h-16 w-16 animate-spin rounded-full border-4 border-white/10 border-t-cyan-400"></div>
+                    <p class="mt-5 text-lg font-semibold text-white">Dang xoa sub / watermark</p>
+                    <p class="mt-2 text-sm text-white/50">He thong dang render lai video va giu noi dung con lai toi da.</p>
+                  </div>
+                </div>
+
+                <div v-else-if="cleanupStatus === 'done'" class="overflow-hidden rounded-[28px] border border-white/10 bg-white/5">
+                  <div class="relative min-h-[620px] overflow-hidden bg-slate-950">
+                    <video
+                      v-if="cleanupOutputUrl"
+                      class="h-[620px] w-full bg-black object-contain"
+                      controls
+                      playsinline
+                      :src="cleanupOutputUrl"
+                    ></video>
+
+                    <div class="border-t border-white/10 p-4">
+                      <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                        <div>
+                          <p class="text-sm font-semibold text-white">{{ cleanupVideoFile?.name || 'Video da xu ly' }}</p>
+                          <p class="text-xs text-white/45">Co the tai xuong hoac mo full screen de check lai vung xoa.</p>
+                        </div>
+                        <a
+                          v-if="cleanupOutputUrl"
+                          :href="cleanupOutputUrl"
+                          download
+                          class="inline-flex items-center justify-center rounded-full bg-white px-4 py-2 text-sm font-semibold text-slate-950 transition hover:-translate-y-0.5"
+                        >
+                          Tai video
+                        </a>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div v-else class="grid min-h-[620px] place-items-center rounded-[28px] border border-white/10 bg-white/5 p-8 text-center">
+                  <div>
+                    <div class="mx-auto flex h-16 w-16 items-center justify-center rounded-[24px] bg-rose-500/10 text-3xl text-rose-200">!</div>
+                    <p class="mt-5 text-lg font-semibold text-white">Xu ly video that bai</p>
+                    <p class="mt-2 text-sm text-white/55">{{ cleanupErrorMessage || 'Da co loi xay ra. Vui long thu lai.' }}</p>
+                    <button
+                      type="button"
+                      class="cursor-pointer mt-5 rounded-full bg-white/10 px-4 py-2 text-sm font-semibold text-white transition hover:bg-white/15"
+                      @click="resetCleanupResult"
+                    >
+                      Thu lai
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </section>
+
           </main>
         </div>
       </div>
@@ -694,7 +841,8 @@ const page = usePage()
 const getInitialPanel = () => {
   try {
     const url = new URL(page.url, window.location.origin)
-    return url.searchParams.get('panel') === 'video' ? 'video' : 'image'
+    const panel = url.searchParams.get('panel')
+    return ['image', 'video', 'cleanup'].includes(panel) ? panel : 'image'
   } catch {
     return 'image'
   }
@@ -725,6 +873,21 @@ const selectedAnimation = ref('quay-nhe')
 const selectedVideoSourceId = ref(null)
 const imagePrompt = ref('')
 const videoPrompt = ref('')
+const cleanupFileInput = ref(null)
+const cleanupVideoFile = ref(null)
+const cleanupVideoPreview = ref(null)
+const cleanupStatus = ref('idle')
+const cleanupGenerating = ref(false)
+const cleanupOutputUrl = ref(null)
+const cleanupErrorMessage = ref(null)
+const cleanupPollInterval = ref(null)
+const cleanupErrors = ref({})
+const cleanupRegion = ref({
+  left_pct: 34,
+  top_pct: 86,
+  width_pct: 31,
+  height_pct: 9,
+})
 
 const guestDemoState = ref('idle')
 const guestDemoTimer = ref(null)
@@ -742,11 +905,13 @@ const animationOptions = [
 ]
 
 const sidebarItems = [
+  { key: 'cleanup', icon: '[]', label: 'Xoa sub video' },
   { key: 'image', icon: '✦', label: 'Tạo ảnh' },
   { key: 'video', icon: '▶', label: 'Tạo video' },
 ]
 
 const mainTabs = [
+  { key: 'cleanup', label: 'Xoa sub video' },
   { key: 'image', label: 'Tạo ảnh' },
   { key: 'video', label: 'Tạo video' },
 ]
@@ -1154,6 +1319,166 @@ function clearVideoPolling() {
   }
 }
 
+function triggerCleanupFilePicker() {
+  cleanupFileInput.value?.click()
+}
+
+function setCleanupVideoFile(file) {
+  if (file.size > 100 * 1024 * 1024) {
+    cleanupErrors.value.video = 'Video khong duoc vuot qua 100MB.'
+    return
+  }
+
+  if (cleanupVideoPreview.value) {
+    URL.revokeObjectURL(cleanupVideoPreview.value)
+  }
+
+  cleanupErrors.value.video = null
+  cleanupVideoFile.value = file
+  cleanupVideoPreview.value = URL.createObjectURL(file)
+  cleanupStatus.value = 'idle'
+  cleanupOutputUrl.value = null
+  cleanupErrorMessage.value = null
+}
+
+function handleCleanupVideoSelect(event) {
+  const file = event.target.files?.[0]
+  if (file) {
+    setCleanupVideoFile(file)
+  }
+}
+
+function validateCleanupForm() {
+  cleanupErrors.value = {}
+
+  if (!cleanupVideoFile.value) {
+    cleanupErrors.value.video = 'Vui long upload video can xoa subtitle.'
+  }
+
+  const fields = ['left_pct', 'top_pct', 'width_pct', 'height_pct']
+
+  for (const field of fields) {
+    const rawValue = Number(cleanupRegion.value[field])
+    if (Number.isNaN(rawValue)) {
+      cleanupErrors.value[field] = 'Gia tri khong hop le.'
+    }
+  }
+
+  if (!cleanupErrors.value.left_pct && (cleanupRegion.value.left_pct < 0 || cleanupRegion.value.left_pct > 95)) {
+    cleanupErrors.value.left_pct = 'left % phai tu 0 den 95.'
+  }
+
+  if (!cleanupErrors.value.top_pct && (cleanupRegion.value.top_pct < 0 || cleanupRegion.value.top_pct > 95)) {
+    cleanupErrors.value.top_pct = 'top % phai tu 0 den 95.'
+  }
+
+  if (!cleanupErrors.value.width_pct && (cleanupRegion.value.width_pct <= 0 || cleanupRegion.value.width_pct > 100)) {
+    cleanupErrors.value.width_pct = 'width % phai lon hon 0 va <= 100.'
+  }
+
+  if (!cleanupErrors.value.height_pct && (cleanupRegion.value.height_pct <= 0 || cleanupRegion.value.height_pct > 100)) {
+    cleanupErrors.value.height_pct = 'height % phai lon hon 0 va <= 100.'
+  }
+
+  return Object.keys(cleanupErrors.value).length === 0
+}
+
+function clearCleanupPolling() {
+  if (cleanupPollInterval.value) {
+    clearInterval(cleanupPollInterval.value)
+    cleanupPollInterval.value = null
+  }
+}
+
+function startCleanupPolling(id) {
+  clearCleanupPolling()
+
+  cleanupPollInterval.value = window.setInterval(async () => {
+    try {
+      const response = await fetch(`/video-cleanup/${id}/status`)
+      const data = await response.json()
+
+      cleanupStatus.value = data.status
+
+      if (data.status === 'done') {
+        cleanupOutputUrl.value = data.output_url
+        cleanupGenerating.value = false
+        clearCleanupPolling()
+      } else if (data.status === 'failed') {
+        cleanupErrorMessage.value = data.error_message
+        cleanupGenerating.value = false
+        clearCleanupPolling()
+      }
+    } catch (error) {
+      console.warn('[Cleanup Poll] Loi tam thoi:', error.message)
+    }
+  }, 3000)
+}
+
+async function processCleanupVideo() {
+  if (!validateCleanupForm()) {
+    return
+  }
+
+  const formData = new FormData()
+  formData.append('video', cleanupVideoFile.value)
+  formData.append('left_pct', String(cleanupRegion.value.left_pct))
+  formData.append('top_pct', String(cleanupRegion.value.top_pct))
+  formData.append('width_pct', String(cleanupRegion.value.width_pct))
+  formData.append('height_pct', String(cleanupRegion.value.height_pct))
+
+  cleanupGenerating.value = true
+  cleanupStatus.value = 'pending'
+  cleanupOutputUrl.value = null
+  cleanupErrorMessage.value = null
+
+  const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content || ''
+
+  try {
+    const response = await fetch('/video-cleanup', {
+      method: 'POST',
+      credentials: 'same-origin',
+      headers: {
+        'Accept': 'application/json',
+        'X-Requested-With': 'XMLHttpRequest',
+        'X-CSRF-TOKEN': csrfToken,
+      },
+      body: formData,
+    })
+
+    if (!response.ok) {
+      const data = await response.json().catch(() => ({}))
+
+      if (response.status === 422 && data.errors) {
+        cleanupErrors.value = {}
+        for (const [key, messages] of Object.entries(data.errors)) {
+          cleanupErrors.value[key] = messages[0]
+        }
+        cleanupStatus.value = 'failed'
+        cleanupGenerating.value = false
+        return
+      }
+
+      throw new Error(data.message || 'Khong the xu ly video.')
+    }
+
+    const result = await response.json()
+    startCleanupPolling(result.id)
+  } catch (error) {
+    cleanupStatus.value = 'failed'
+    cleanupErrorMessage.value = error.message
+    cleanupGenerating.value = false
+  }
+}
+
+function resetCleanupResult() {
+  clearCleanupPolling()
+  cleanupStatus.value = 'idle'
+  cleanupGenerating.value = false
+  cleanupOutputUrl.value = null
+  cleanupErrorMessage.value = null
+}
+
 function startVideoPolling(id) {
   clearVideoPolling()
 
@@ -1298,9 +1623,13 @@ watch(
 onBeforeUnmount(() => {
   clearPolling()
   clearVideoPolling()
+  clearCleanupPolling()
   clearTimeout(guestDemoTimer.value)
   if (productPreview.value) {
     URL.revokeObjectURL(productPreview.value)
+  }
+  if (cleanupVideoPreview.value) {
+    URL.revokeObjectURL(cleanupVideoPreview.value)
   }
 })
 </script>
