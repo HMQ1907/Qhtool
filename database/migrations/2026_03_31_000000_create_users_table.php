@@ -13,14 +13,7 @@ return new class extends Migration
             $table->string('name');
             $table->string('email')->unique();
             $table->string('password');
-            
-            // Phân quyền
             $table->enum('role', ['admin', 'user'])->default('user');
-            
-            // Hỗ trợ dùng thử free
-            $table->integer('free_images_left')->default(3); // Tặng 3 ảnh free
-            $table->integer('free_videos_left')->default(1); // Tặng 1 video free
-            
             $table->rememberToken();
             $table->timestamps();
         });

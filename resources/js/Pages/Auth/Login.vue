@@ -5,7 +5,7 @@
         Đăng nhập vào hệ thống
       </h2>
       <p class="mt-2 text-center text-sm text-gray-400">
-        QH Fashion AI Tool
+        Stoicism & Psychology Generator
       </p>
     </div>
 
