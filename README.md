@@ -16,10 +16,10 @@ Laravel + Vue/Inertia application for creating short-form video campaigns in the
 2. User creates a campaign at `/campaigns`.
 3. The app creates the requested number of `campaign_videos`.
 4. Each video is processed through queued jobs:
-   - `GenerateScriptJob`: creates the short-form script with EvoLink chat completions.
-   - `GenerateVoiceJob`: converts the script to an audio file.
-   - `GenerateMediaJob`: starts text-to-video generation.
-   - `RenderFinalVideoJob`: prepares the final video output.
+   - `GenerateScriptJob`: creates a 30-45 second Shorts/Reels script with a strong opening hook.
+   - `GenerateVoiceJob`: converts the script to an audio file for future narration/render workflows.
+   - `GenerateMediaJob`: creates a vertical 9:16 EvoLink video task, polls it, and stores the cloud result URL.
+   - `RenderFinalVideoJob`: marks the EvoLink cloud URL as the final output without downloading it.
 
 ## Important Files
 
@@ -59,4 +59,11 @@ EVOLINK_BASE_URL=https://api.evolink.ai/v1
 EVOLINK_TEXT_MODEL=deepseek-v4-pro
 EVOLINK_VOICE_MODEL=qwen3-tts-vd
 EVOLINK_VIDEO_MODEL=kling-v3-text-to-video
+EVOLINK_VIDEO_ASPECT_RATIO=9:16
+EVOLINK_VIDEO_QUALITY=720p
+EVOLINK_VIDEO_SOUND=off
+EVOLINK_MONETIZATION_VIDEO_DURATION=30
+EVOLINK_AFFILIATE_VIDEO_DURATION=45
+EVOLINK_POLL_INTERVAL=5
+EVOLINK_VIDEO_TIMEOUT=900
 ```

@@ -23,11 +23,17 @@ class GenerateScriptJob implements ShouldQueue
         $this->video->update(['status' => 'generating_script']);
 
         try {
-            $prompt = "Write a short, engaging 30-second TikTok/Shorts video script in the Psychology & Stoicism niche. It must be in English. Make it deep, cinematic, and thought-provoking. No camera directions, just the spoken text.";
+            $duration = (int) ($this->video->duration_seconds ?: (
+                $this->video->video_type === 'affiliate'
+                    ? config('evolink.affiliate_duration', 45)
+                    : config('evolink.monetization_duration', 30)
+            ));
+
+            $prompt = "Write a {$duration}-second vertical YouTube Shorts/Facebook Reels script in the Psychology & Stoicism niche. It must be in English. Start with a strong 1-2 second hook. Use short spoken sentences, high retention pacing, and a deep cinematic tone. No camera directions. Return only the spoken text.";
             if ($this->video->video_type === 'affiliate') {
-                $prompt .= " The script MUST end with a soft-selling call to action, exactly like: 'Check the link in my bio to get the full Stoicism survival guide.'";
+                $prompt .= " End with a soft-selling call to action: 'Check the link in my bio to get the full Stoicism survival guide.'";
             } else {
-                $prompt .= " The script MUST end with an engagement hook like: 'Follow for more daily Stoic wisdom.'";
+                $prompt .= " End with an engagement hook like: 'Follow for more daily Stoic wisdom.'";
             }
 
             $response = Http::timeout(120)
@@ -57,6 +63,8 @@ class GenerateScriptJob implements ShouldQueue
             
             $this->video->update([
                 'script_text' => $scriptStr,
+                'caption' => $this->buildCaption($scriptStr),
+                'hashtags' => ['#stoicism', '#psychology', '#shorts', '#reels', '#mindset'],
                 'status' => 'generating_voice'
             ]);
 
@@ -68,5 +76,13 @@ class GenerateScriptJob implements ShouldQueue
                 'error_message' => $e->getMessage()
             ]);
         }
+    }
+
+    private function buildCaption(string $script): string
+    {
+        $firstLine = trim(strtok($script, "\n") ?: $script);
+        $firstLine = substr($firstLine, 0, 120);
+
+        return $firstLine . "\n\n#stoicism #psychology #shorts #reels #mindset";
     }
 }

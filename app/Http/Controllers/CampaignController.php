@@ -3,7 +3,6 @@
 namespace App\Http\Controllers;
 
 use App\Models\Campaign;
-use App\Models\CampaignVideo;
 use App\Jobs\Pipeline\GenerateScriptJob;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -43,6 +42,11 @@ class CampaignController extends Controller
             $video = $campaign->videos()->create([
                 'title' => 'Video Phần ' . ($i + 1),
                 'video_type' => $type,
+                'duration_seconds' => $type === 'affiliate'
+                    ? config('evolink.affiliate_duration', 45)
+                    : config('evolink.monetization_duration', 30),
+                'aspect_ratio' => config('evolink.video_aspect_ratio', '9:16'),
+                'quality' => config('evolink.video_quality', '720p'),
                 'status' => 'draft'
             ]);
 

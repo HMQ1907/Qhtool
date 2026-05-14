@@ -3,13 +3,17 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\Model;
-
 class CampaignVideo extends BaseModel
 {
     use HasFactory;
 
     protected $guarded = ['id'];
+
+    protected $casts = [
+        'hashtags' => 'array',
+        'duration_seconds' => 'integer',
+        'external_url_expires_at' => 'datetime',
+    ];
 
     public function campaign()
     {

@@ -25,8 +25,6 @@ class GenerateVoiceJob implements ShouldQueue
         $this->video->update(['status' => 'generating_voice']);
 
         try {
-            // Text to speech parameter object, using qwen3-tts-vd as described.
-            // Adjust according to Evolink API docs for qwen3-tts-vd. Using standard format here.
             $response = Http::timeout(120)
                 ->withToken(config('evolink.api_key'))
                 ->post(config('evolink.base_url') . '/audio/speech', [
