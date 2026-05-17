@@ -11,6 +11,8 @@ class CampaignVideo extends BaseModel
 
     protected $casts = [
         'hashtags' => 'array',
+        'product_images' => 'array',
+        'generated_product_images' => 'array',
         'duration_seconds' => 'integer',
         'external_url_expires_at' => 'datetime',
     ];

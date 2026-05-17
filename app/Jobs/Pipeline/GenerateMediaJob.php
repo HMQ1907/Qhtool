@@ -9,6 +9,7 @@ use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Facades\Http;
+use App\Support\ShortVideoCreativeBrief;
 use RuntimeException;
 
 class GenerateMediaJob implements ShouldQueue
@@ -24,7 +25,9 @@ class GenerateMediaJob implements ShouldQueue
         $this->video->update(['status' => 'generating_media']);
 
         try {
-            $duration = (int) ($this->video->duration_seconds ?: config('evolink.monetization_duration', 30));
+            $duration = $this->normalizeDuration(
+                (int) ($this->video->duration_seconds ?: config('evolink.monetization_duration', 15))
+            );
             $aspectRatio = $this->video->aspect_ratio ?: config('evolink.video_aspect_ratio', '9:16');
             $quality = $this->video->quality ?: config('evolink.video_quality', '720p');
 
@@ -68,25 +71,35 @@ class GenerateMediaJob implements ShouldQueue
             ]);
 
             $this->markCampaignFailedIfNeeded();
+            throw $e; // Quăng lỗi ra terminal
         }
     }
 
     private function buildVideoPrompt(int $duration): string
     {
-        $script = trim((string) $this->video->script_text);
+        $brief = ShortVideoCreativeBrief::for($this->video);
         $tone = $this->video->video_type === 'affiliate'
-            ? 'subtle persuasive self-improvement ad, no hard sell'
-            : 'high-retention motivational wisdom content';
+            ? 'mysterious, persuasive, premium'
+            : 'profound, dark academia, motivational';
 
-        return implode(' ', [
-            "Create a {$duration}-second vertical 9:16 video for YouTube Shorts and Facebook Reels.",
-            "Theme: Psychology and Stoicism.",
-            "Tone: {$tone}.",
-            "Visual style: cinematic, premium, emotional, slow camera movement, dramatic lighting, clean composition.",
-            "Avoid logos, watermarks, UI text, unreadable text, and random captions.",
-            "The visuals should match this spoken script:",
-            $script,
+        return implode(', ', [
+            "A {$duration}-second seamless cinematic vertical 9:16 B-roll sequence for a premium Stoicism and Psychology Shorts channel",
+            "Episode theme: {$brief['series']} about {$brief['angle']}",
+            "Visual world: {$brief['visual_world']}",
+            "Signature symbol: {$brief['symbol']}",
+            "Camera language: {$brief['motion']}",
+            "Color palette: {$brief['palette']}",
+            "Style: photorealistic, high detail, dramatic chiaroscuro lighting, restrained, intelligent, {$tone}",
+            "Keep a consistent premium channel identity: ancient philosophy, modern psychological tension, calm power",
+            "Absolutely no logos, no watermarks, no subtitles, no readable text, no letters, no UI elements, clean composition"
         ]);
+    }
+
+    private function normalizeDuration(int $duration): int
+    {
+        $maxDuration = (int) config('evolink.max_video_duration', 15);
+
+        return max(1, min($duration, $maxDuration));
     }
 
     private function waitForTask(string $taskId): array
@@ -137,8 +150,23 @@ class GenerateMediaJob implements ShouldQueue
                 }
             }
         }
+        
+        // Dự phòng như bên Voice: API có thể trả về result_data
+        if (isset($task['result_data'])) {
+            foreach (['video_url', 'url', 'file_url'] as $key) {
+                if (! empty($task['result_data'][$key]) && filter_var($task['result_data'][$key], FILTER_VALIDATE_URL)) {
+                    return $task['result_data'][$key];
+                }
+            }
+        }
 
-        throw new RuntimeException('Evolink completed the task but did not return a video URL.');
+        // Dự phòng 2: Regex quét toàn bộ JSON giống hệt bên Voice
+        $resultsStr = json_encode($task);
+        if (preg_match("/\"(?:video_url|url|file_url)\"\s*:\s*\"(http[^\"]+)\"/", $resultsStr, $matches)) {
+            return $matches[1];
+        }
+
+        throw new RuntimeException('Evolink completed the task but did not return a video URL: ' . json_encode($task));
     }
 
     private function endpoint(string $path): string

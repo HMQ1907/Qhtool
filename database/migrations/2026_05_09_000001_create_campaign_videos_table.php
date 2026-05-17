@@ -15,9 +15,9 @@ return new class extends Migration
             $table->enum('video_type', ['monetization', 'affiliate'])->default('monetization');
 
             $table->text('script_text')->nullable();
-            $table->string('voice_audio_url')->nullable();
-            $table->string('background_video_url')->nullable();
-            $table->string('final_video_url')->nullable();
+            $table->text('voice_audio_url')->nullable();
+            $table->text('background_video_url')->nullable();
+            $table->text('final_video_url')->nullable();
             $table->string('external_task_id')->nullable()->index();
             $table->timestamp('external_url_expires_at')->nullable();
             $table->unsignedSmallInteger('duration_seconds')->default(30);

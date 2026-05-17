@@ -1,139 +1,105 @@
 <template>
-    <div class="min-h-screen bg-gray-50 px-4 py-8 sm:px-6 lg:px-8">
-        <div class="mx-auto max-w-7xl space-y-8">
-            <div class="flex items-center justify-between">
+    <div class="min-h-screen bg-slate-50 px-4 py-6 sm:px-6 lg:px-8">
+        <div class="mx-auto max-w-7xl space-y-6">
+            <header class="flex items-center justify-between border-b border-slate-200 pb-5">
                 <div>
-                    <h1 class="font-poppins text-3xl font-bold text-gray-900">{{ campaign.name }}</h1>
-                    <p class="mt-2 text-sm text-gray-600">Theo doi tien trinh san xuat tung video trong campaign.</p>
+                    <p class="text-sm font-semibold uppercase tracking-wide text-emerald-700">Affiliate batch</p>
+                    <h1 class="mt-1 text-3xl font-bold text-slate-950">{{ campaign.name }}</h1>
+                    <p class="mt-2 text-sm text-slate-600">{{ completedCount }}/{{ campaign.videos.length }} video hoan thanh.</p>
                 </div>
-                <a href="/campaigns" class="text-sm font-medium text-indigo-600 hover:text-indigo-500">
-                    &larr; Tro lai danh sach
-                </a>
-            </div>
+                <a href="/campaigns" class="rounded-md border border-slate-300 px-3 py-2 text-sm font-medium text-slate-700 hover:bg-white">Quay lai</a>
+            </header>
 
             <div class="grid grid-cols-1 gap-4 md:grid-cols-4">
-                <div class="rounded-xl border border-gray-100 bg-white p-4 shadow-sm">
-                    <p class="text-sm font-medium text-gray-500">Tong so video</p>
-                    <p class="mt-1 text-2xl font-bold text-gray-900">{{ campaign.videos.length }}</p>
-                </div>
-                <div class="rounded-xl border border-gray-100 bg-white p-4 shadow-sm">
-                    <p class="text-sm font-medium text-gray-500">Hoan thanh</p>
-                    <p class="mt-1 text-2xl font-bold text-green-600">{{ completedCount }}</p>
-                </div>
-                <div class="rounded-xl border border-gray-100 bg-white p-4 shadow-sm">
-                    <p class="text-sm font-medium text-gray-500">Keo view</p>
-                    <p class="mt-1 text-2xl font-bold text-blue-600">{{ monetizationCount }}</p>
-                </div>
-                <div class="rounded-xl border border-gray-100 bg-white p-4 shadow-sm">
-                    <p class="text-sm font-medium text-gray-500">Affiliate</p>
-                    <p class="mt-1 text-2xl font-bold text-purple-600">{{ affiliateCount }}</p>
-                </div>
+                <Metric label="Tong video" :value="campaign.videos.length" />
+                <Metric label="Hoan thanh" :value="completedCount" tone="green" />
+                <Metric label="Dang chay" :value="runningCount" tone="amber" />
+                <Metric label="Loi" :value="failedCount" tone="red" />
             </div>
 
-            <div class="overflow-hidden rounded-xl border border-gray-100 bg-white shadow-sm">
-                <div class="border-b border-gray-100 bg-gray-50/50 px-6 py-5">
-                    <h3 class="text-lg font-semibold text-gray-900">Danh sach video</h3>
-                </div>
-                <div class="overflow-x-auto">
-                    <table class="min-w-full divide-y divide-gray-200">
-                        <thead class="bg-gray-50">
-                            <tr>
-                                <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Tieu de</th>
-                                <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Loai</th>
-                                <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Trang thai</th>
-                                <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Script / caption</th>
-                                <th class="px-6 py-3 text-right text-xs font-medium uppercase tracking-wider text-gray-500">Hanh dong</th>
-                            </tr>
-                        </thead>
-                        <tbody class="divide-y divide-gray-200 bg-white">
-                            <tr v-for="video in campaign.videos" :key="video.id" class="hover:bg-gray-50">
-                                <td class="whitespace-nowrap px-6 py-4 text-sm font-medium text-gray-900">
-                                    {{ video.title }}
-                                    <div class="mt-1 text-xs font-normal text-gray-500">
-                                        {{ video.duration_seconds || 30 }}s · {{ video.aspect_ratio || '9:16' }} · {{ video.quality || '720p' }}
-                                    </div>
-                                </td>
-                                <td class="whitespace-nowrap px-6 py-4 text-sm">
-                                    <span
-                                        v-if="video.video_type === 'affiliate'"
-                                        class="inline-flex rounded-full bg-purple-100 px-2 py-1 text-xs font-semibold leading-5 text-purple-800"
-                                    >
-                                        Affiliate
-                                    </span>
-                                    <span
-                                        v-else
-                                        class="inline-flex rounded-full bg-blue-100 px-2 py-1 text-xs font-semibold leading-5 text-blue-800"
-                                    >
-                                        Monetization
-                                    </span>
-                                </td>
-                                <td class="whitespace-nowrap px-6 py-4 text-sm">
-                                    <span
-                                        :class="[
-                                            video.status === 'completed' ? 'bg-green-100 text-green-800' :
-                                            video.status === 'failed' ? 'bg-red-100 text-red-800' :
-                                            'animate-pulse bg-yellow-100 text-yellow-800',
-                                            'inline-flex rounded-full px-2 py-1 text-xs font-semibold uppercase leading-5'
-                                        ]"
-                                    >
-                                        {{ String(video.status).replace('_', ' ') }}
-                                    </span>
-                                    <div v-if="video.external_task_id" class="mt-1 max-w-xs truncate text-xs text-gray-400" :title="video.external_task_id">
-                                        Task: {{ video.external_task_id }}
-                                    </div>
-                                    <div v-if="video.external_url_expires_at" class="mt-1 text-xs text-amber-600">
-                                        Cloud URL expires: {{ video.external_url_expires_at }}
-                                    </div>
-                                    <div v-if="video.error_message" class="mt-1 max-w-xs truncate text-xs text-red-500" :title="video.error_message">
-                                        Loi: {{ video.error_message }}
-                                    </div>
-                                </td>
-                                <td class="max-w-xs px-6 py-4 text-sm text-gray-500">
-                                    <div class="truncate" :title="video.script_text">{{ video.script_text || 'Dang tao...' }}</div>
-                                    <div v-if="video.caption" class="mt-1 truncate text-xs text-gray-400" :title="video.caption">
-                                        {{ video.caption }}
-                                    </div>
-                                </td>
-                                <td class="whitespace-nowrap px-6 py-4 text-right text-sm font-medium">
-                                    <a
-                                        v-if="video.status === 'completed' && video.final_video_url"
-                                        :href="resolveVideoUrl(video.final_video_url)"
-                                        target="_blank"
-                                        class="text-indigo-600 hover:text-indigo-900"
-                                    >
-                                        Mo video
-                                    </a>
-                                    <span v-else class="text-gray-300">Chua co</span>
-                                </td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
+            <section class="grid grid-cols-1 gap-5 md:grid-cols-2 xl:grid-cols-3">
+                <article v-for="video in campaign.videos" :key="video.id" class="overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm">
+                    <div class="aspect-[9/16] bg-slate-950">
+                        <video
+                            v-if="video.status === 'completed' && video.final_video_url"
+                            :src="resolveVideoUrl(video.final_video_url)"
+                            controls
+                            class="h-full w-full object-contain"
+                        ></video>
+                        <div v-else class="flex h-full items-center justify-center p-6 text-center text-sm text-slate-400">
+                            {{ video.status === 'failed' ? 'Render loi' : 'Dang xu ly...' }}
+                        </div>
+                    </div>
+                    <div class="space-y-3 p-4">
+                        <div class="flex items-start justify-between gap-3">
+                            <div>
+                                <h2 class="font-semibold text-slate-950">{{ video.title }}</h2>
+                                <p class="mt-1 text-xs text-slate-500">{{ video.generation_mode }} · {{ video.duration_seconds }}s</p>
+                            </div>
+                            <span :class="statusClass(video.status)" class="rounded-full px-2 py-1 text-xs font-semibold uppercase">{{ video.status }}</span>
+                        </div>
+
+                        <p class="line-clamp-4 text-sm text-slate-600">{{ video.script_text || 'Dang tao script...' }}</p>
+                        <p v-if="video.caption" class="line-clamp-3 text-xs text-slate-500">{{ video.caption }}</p>
+                        <p v-if="video.error_message" class="line-clamp-3 text-xs text-red-600">{{ video.error_message }}</p>
+
+                        <div class="flex gap-2">
+                            <a
+                                v-if="video.final_video_url"
+                                :href="resolveVideoUrl(video.final_video_url)"
+                                target="_blank"
+                                class="rounded-md bg-emerald-600 px-3 py-2 text-sm font-semibold text-white hover:bg-emerald-700"
+                            >
+                                Mo video
+                            </a>
+                            <a
+                                v-if="video.product_url"
+                                :href="video.product_url"
+                                target="_blank"
+                                class="rounded-md border border-slate-300 px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"
+                            >
+                                Link SP
+                            </a>
+                        </div>
+                    </div>
+                </article>
+            </section>
         </div>
     </div>
 </template>
 
 <script setup>
-import { computed } from 'vue'
+import { computed, h } from 'vue'
 
 const props = defineProps({
     campaign: Object,
 })
 
+const Metric = (props) => h('div', {
+    class: 'rounded-lg border border-slate-200 bg-white p-4 shadow-sm',
+}, [
+    h('p', { class: 'text-sm font-medium text-slate-500' }, props.label),
+    h('p', {
+        class: [
+            'mt-1 text-2xl font-bold',
+            props.tone === 'green' ? 'text-green-600' : props.tone === 'amber' ? 'text-amber-600' : props.tone === 'red' ? 'text-red-600' : 'text-slate-950',
+        ],
+    }, props.value),
+])
+
 const completedCount = computed(() => props.campaign.videos.filter((video) => video.status === 'completed').length)
-const monetizationCount = computed(() => props.campaign.videos.filter((video) => video.video_type === 'monetization').length)
-const affiliateCount = computed(() => props.campaign.videos.filter((video) => video.video_type === 'affiliate').length)
+const runningCount = computed(() => props.campaign.videos.filter((video) => !['completed', 'failed'].includes(video.status)).length)
+const failedCount = computed(() => props.campaign.videos.filter((video) => video.status === 'failed').length)
 
 function resolveVideoUrl(url) {
-    if (!url) {
-        return '#'
-    }
-
-    if (/^https?:\/\//i.test(url)) {
-        return url
-    }
-
+    if (!url) return '#'
+    if (/^https?:\/\//i.test(url)) return url
     return `/${String(url).replace(/^\/+/, '')}`
+}
+
+function statusClass(status) {
+    if (status === 'completed') return 'bg-green-100 text-green-800'
+    if (status === 'failed') return 'bg-red-100 text-red-800'
+    return 'bg-amber-100 text-amber-800'
 }
 </script>
