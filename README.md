@@ -1,6 +1,6 @@
-# Stoicism & Psychology Generator
+# TikTok Shop Affiliate Video Generator
 
-Laravel + Vue/Inertia application for creating short-form video campaigns in the Psychology & Stoicism niche.
+Laravel + Vue/Inertia application for creating short-form TikTok Shop affiliate video campaigns from a product name, product notes, buyer pain points, and product images.
 
 ## Stack
 
@@ -16,10 +16,10 @@ Laravel + Vue/Inertia application for creating short-form video campaigns in the
 2. User creates a campaign at `/campaigns`.
 3. The app creates the requested number of `campaign_videos`.
 4. Each video is processed through queued jobs:
-   - `GenerateScriptJob`: creates a 30-45 second Shorts/Reels script with a strong opening hook.
-   - `GenerateVoiceJob`: converts the script to an audio file for future narration/render workflows.
-   - `GenerateMediaJob`: creates a vertical 9:16 EvoLink video task, polls it, and stores the cloud result URL.
-   - `RenderFinalVideoJob`: marks the EvoLink cloud URL as the final output without downloading it.
+   - `GenerateScriptJob`: creates a short Vietnamese TikTok Shop affiliate voice-over using the selected mode strategy.
+   - `GenerateVoiceJob`: converts the script to narration and keeps the stored script/caption aligned with the spoken version.
+   - `RenderFinalVideoJob`: renders a vertical 9:16 video from uploaded product images or AI-generated product scenes, burns subtitles, and attaches the voice-over.
+   - `GenerateMediaJob`: optional video-background path for future use; affiliate prompts are product-focused.
 
 ## Important Files
 

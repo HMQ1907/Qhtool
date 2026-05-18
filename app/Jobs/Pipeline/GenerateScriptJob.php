@@ -39,14 +39,14 @@ class GenerateScriptJob implements ShouldQueue
                     'messages' => [
                         [
                             'role' => 'system',
-                            'content' => 'Ban la mot bien kich TikTok Shop Affiliate gioi o Viet Nam. Viet ngan, that, ban hang mem, khong noi qua, khong claim y te.'
+                            'content' => 'Ban la mot bien kich TikTok Shop Affiliate gioi o Viet Nam. Uu tien retention, niem tin va y dinh bam gio hang. Viet ngan, that, ban hang mem, khong noi qua, khong claim y te, khong hua hen ket qua chac chan.'
                         ],
                         [
                             'role' => 'user',
                             'content' => $prompt
                         ],
                     ],
-                    'temperature' => 0.85,
+                    'temperature' => $this->temperatureForMode(),
                 ]);
 
             if ($response->failed()) {
@@ -81,20 +81,45 @@ class GenerateScriptJob implements ShouldQueue
 
     private function buildPrompt(int $duration): string
     {
+        $mode = (string) ($this->video->generation_mode ?: 'fast_test');
+        $brief = AffiliateCreativeBrief::forVariation($mode, max(0, (int) $this->video->id));
+        $targetWords = $this->targetWords($duration);
+
         return implode("\n", [
-            "Hay viet kich ban voice-over tieng Viet dai khoang {$duration} giay cho video TikTok Shop Affiliate.",
+            "Hay viet kich ban voice-over tieng Viet dai khoang {$duration} giay, toi da {$targetWords} tu, cho video TikTok Shop Affiliate.",
             "San pham: {$this->video->product_name}",
-            "Mo ta nguoi dung nhap: " . ($this->video->product_description ?: 'khong co'),
-            "Goc ban hang: {$this->video->sales_angle}",
-            "Mode: {$this->video->generation_mode}",
+            "Mo ta/USP nguoi dung nhap: " . ($this->video->product_description ?: 'khong co'),
+            "Gia/khoang gia neu co: " . ($this->video->product_price ?: 'khong co'),
+            "Noi dau/pain point can cham: " . ($this->video->product_pain_points ?: 'tu suy luan an toan tu ten san pham, khong bia tinh nang cu the'),
+            "Review/social proof neu co: " . ($this->video->product_reviews ?: 'khong co'),
+            "Thong tin hoa hong noi bo, chi dung de uu tien san pham neu can, khong doc ra video: " . ($this->video->commission_rate ?: 'khong co'),
+            "Goc ban hang da chon: {$this->video->sales_angle}",
+            "Hook nen tham khao: {$brief['hook']}",
+            AffiliateCreativeBrief::modeInstruction($mode),
             "Yeu cau:",
-            "1. Cau dau phai co hook manh trong 2 giay dau.",
-            "2. Giong noi nhu review that, khong qua quang cao, khong noi qua.",
-            "3. Neu thong tin san pham thieu, viet an toan va chung vua du, khong tu bia cong dung cu the.",
-            "4. Neu la do gia dung/tien ich, tap trung vao su tien, gon, de dung, tiet kiem thoi gian.",
-            "5. Khong nhac den gia, hoa hong, link bio. CTA cuoi: 'Bam vao gio hang goc trai de xem them san pham.'",
-            "6. Khong hashtag, khong markdown, khong bullet. Chi tra ve loi thoai.",
+            "1. Cau dau phai la hook duoi 12 tu, cham dung van de hoac su to mo, khong mo dau bang 'hom nay minh review'.",
+            "2. Moi cau phai doc duoc bang voice-over, cau ngan, tu nhien nhu review that.",
+            "3. Khong noi qua, khong cam ket ket qua, khong claim y te/lam dep/thu nhap neu khong co thong tin.",
+            "4. Neu thieu thong tin, hay noi theo kieu 'dang de can nhac', 'co the hop voi', 'nen xem them trong gio hang', khong tu bia thong so.",
+            "5. Neu co gia, chi noi mem nhu 'trong tam gia nay' hoac 'neu gia trong gio hang dang tot' va khong doc con so neu nguoi dung khong nhap.",
+            "6. Chen 1 cau tao niem tin: noi ro san pham khong phai than ky, nhung giai quyet dung mot viec cu the.",
+            "7. CTA cuoi dung y nay, co the bien tau nhe: 'Bam vao gio hang goc trai de xem them san pham.'",
+            "8. Khong hashtag, khong markdown, khong bullet, khong tieu de. Chi tra ve loi thoai duy nhat.",
         ]);
+    }
+
+    private function targetWords(int $duration): int
+    {
+        return max(32, min(85, (int) floor($duration * 2.45)));
+    }
+
+    private function temperatureForMode(): float
+    {
+        return match ($this->video->generation_mode) {
+            'winner_scale' => 0.7,
+            'premium_product' => 0.78,
+            default => 0.9,
+        };
     }
 
     private function buildCaption(string $script, array $hashtags): string

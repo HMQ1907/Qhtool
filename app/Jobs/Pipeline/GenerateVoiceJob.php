@@ -34,9 +34,17 @@ class GenerateVoiceJob implements ShouldQueue
                 throw new RuntimeException('Cannot generate voice because script_text is empty.');
             }
 
+            $ttsScript = $this->scriptForTts($this->video->script_text);
+            if ($ttsScript !== trim((string) $this->video->script_text)) {
+                $this->video->update([
+                    'script_text' => $ttsScript,
+                    'caption' => $this->buildCaptionFromScript($ttsScript),
+                ]);
+            }
+
             $filename = config('evolink.local_tts_enabled', true)
-                ? $this->generateLocalTts($this->scriptForTts($this->video->script_text))
-                : $this->generateEvolinkTts($this->scriptForTts($this->video->script_text));
+                ? $this->generateLocalTts($ttsScript)
+                : $this->generateEvolinkTts($ttsScript);
 
             $this->video->update([
                 'voice_audio_url' => Storage::url($filename),
@@ -158,6 +166,15 @@ class GenerateVoiceJob implements ShouldQueue
         }
 
         return trim($script);
+    }
+
+    private function buildCaptionFromScript(string $script): string
+    {
+        $firstLine = trim(strtok($script, "\n") ?: $script);
+        $firstLine = mb_substr($firstLine, 0, 120);
+        $hashtags = $this->video->hashtags ?: [];
+
+        return trim($firstLine . "\n\n" . implode(' ', $hashtags));
     }
 
     private function extractAudioUrl(array $task): string

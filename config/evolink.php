@@ -25,4 +25,5 @@ return [
     'poll_interval' => (int) env('EVOLINK_POLL_INTERVAL', 5),
     'video_timeout' => (int) env('EVOLINK_VIDEO_TIMEOUT', 900),
     'ffmpeg_path' => env('FFMPEG_PATH', 'ffmpeg'),
+    'ffprobe_path' => env('FFPROBE_PATH', 'ffprobe'),
 ];

@@ -211,7 +211,7 @@ class RenderFinalVideoJob implements ShouldQueue
             return $generated;
         }
 
-        if (! config('evolink.generate_product_images', true)) {
+        if ($this->video->generation_mode === 'fast_test' || ! config('evolink.generate_product_images', true)) {
             return $this->video->product_images ?: [];
         }
 
@@ -308,21 +308,85 @@ class RenderFinalVideoJob implements ShouldQueue
 
     private function buildProductScenePrompt(int $index): string
     {
-        $scenes = [
-            'a warm cozy bedroom nightstand scene with soft ambient lamp light, premium lifestyle product photography',
-            'a clean reading corner on a wooden desk with books, soft curtains, warm cinematic bokeh lighting',
-            'a stylish small apartment bedside table scene, calm evening atmosphere, realistic social commerce ad photo',
-        ];
+        $scenes = $this->sceneSetForProduct();
+        $modeStyle = match ($this->video->generation_mode) {
+            'winner_scale' => 'conversion focused product proof, clear close-up details, practical use-case sequence, realistic TikTok Shop review look',
+            'premium_product' => 'premium lifestyle product photography, tasteful composition, polished but believable social commerce visual',
+            default => 'authentic TikTok product review visual, practical daily-use scene, natural phone-camera realism',
+        };
 
         return implode(', ', [
             'Create a new vertical 9:16 product advertising image using the uploaded product photos as strict reference',
             'Product: ' . $this->video->product_name,
+            'Product notes: ' . ($this->video->product_description ?: 'infer only safe visible product context from references'),
+            'Buyer pain point: ' . ($this->video->product_pain_points ?: 'daily inconvenience solved by the product'),
             $scenes[$index % count($scenes)],
-            'preserve the real product shape, color, material, lampshade, wooden base, proportions, and decorative patterns',
-            'make the scene look like a premium TikTok Shop lifestyle review visual, photorealistic, sharp, high detail, attractive warm lighting',
+            'preserve the real product shape, color, material, proportions, labels if visible but do not invent readable text, and distinctive details',
+            $modeStyle,
+            'show the product as the hero object, large enough to inspect, not tiny, not hidden by props',
             'no people, no hands, no text, no logos, no watermark, no UI, no price tags, no readable letters',
             'leave clean lower-middle space for subtitles',
         ]);
+    }
+
+    private function sceneSetForProduct(): array
+    {
+        $text = mb_strtolower(implode(' ', array_filter([
+            $this->video->product_name,
+            $this->video->product_description,
+            $this->video->product_pain_points,
+        ])), 'UTF-8');
+
+        $sets = [
+            'kitchen' => [
+                'a compact real kitchen counter scene, tidy small apartment kitchen, useful product placement, morning natural light',
+                'a before-after inspired kitchen organization scene, clean countertop, realistic home lighting, product solving clutter',
+                'a close-up on the product near sink or cooking prep area, practical household review photography',
+            ],
+            'beauty' => [
+                'a clean bathroom vanity or makeup table scene, soft daylight, realistic beauty product review setup',
+                'a close-up product detail scene beside mirror and simple skincare items, neat premium composition',
+                'a small dressing table lifestyle scene, calm natural light, product easy to inspect',
+            ],
+            'electronics' => [
+                'a modern desk setup scene, phone or laptop nearby, tidy workspace, product shown in practical tech use context',
+                'a close-up product detail scene on a clean desk, cable or accessory context if relevant, realistic lighting',
+                'a small apartment work corner scene, useful gadget review style, sharp product focus',
+            ],
+            'fashion' => [
+                'a clean wardrobe or dressing corner scene, neutral background, product styled as a daily outfit accessory',
+                'a close-up fabric or accessory detail scene, premium but realistic ecommerce review photography',
+                'a minimal lifestyle flat-lay scene with the product as the hero, soft natural light',
+            ],
+            'mom_baby' => [
+                'a tidy family home scene, soft safe nursery-like lighting, product shown as practical daily helper',
+                'a clean table scene with gentle colors, family-use context, product visible and trustworthy',
+                'a close-up of the product in a calm home routine setting, realistic social commerce visual',
+            ],
+            'home' => [
+                'a small apartment living area scene, clean and practical, product solving a visible home inconvenience',
+                'a tidy shelf or tabletop scene, realistic household review visual, product as hero object',
+                'a close-up home organization scene, warm natural light, useful daily-life context',
+            ],
+        ];
+
+        $keywords = [
+            'kitchen' => ['bep', 'nha bep', 'noi', 'chao', 'dao', 'thot', 'chen', 'bat', 'rua', 'gia vi', 'dau an', 'hop dung', 'ke dung'],
+            'beauty' => ['kem', 'son', 'duong', 'serum', 'toc', 'da', 'mat na', 'trang diem', 'makeup', 'my pham'],
+            'electronics' => ['sac', 'usb', 'dien', 'den led', 'tai nghe', 'loa', 'ban phim', 'chuot', 'camera', 'may hut bui', 'quat'],
+            'fashion' => ['ao', 'quan', 'vay', 'giay', 'tui', 'non', 'kinh', 'dong ho', 'thoi trang'],
+            'mom_baby' => ['be', 'em be', 'tre', 'me va be', 'binh sua', 'bim', 'do choi', 'an dam'],
+        ];
+
+        foreach ($keywords as $key => $items) {
+            foreach ($items as $keyword) {
+                if (str_contains($text, $keyword)) {
+                    return $sets[$key];
+                }
+            }
+        }
+
+        return $sets['home'];
     }
 
     private function downloadGeneratedImage(string $url, int $index): string
@@ -363,9 +427,7 @@ class RenderFinalVideoJob implements ShouldQueue
             return;
         }
 
-        $words = preg_split('/\s+/', preg_replace('/[^\pL\pN\' -]+/u', ' ', $script));
-        $words = array_values(array_filter($words));
-        $chunks = array_chunk($words, 5);
+        $chunks = $this->captionChunks($script);
         $duration = max(8, $this->mediaDuration($audioPath) ?: (float) $this->video->duration_seconds);
         $secondsPerChunk = max(1.2, $duration / max(1, count($chunks)));
 
@@ -387,6 +449,26 @@ class RenderFinalVideoJob implements ShouldQueue
         }
 
         file_put_contents($path, $content);
+    }
+
+    private function captionChunks(string $script): array
+    {
+        $sentences = preg_split('/(?<=[.!?])\s+/u', trim($script), -1, PREG_SPLIT_NO_EMPTY) ?: [];
+        $chunks = [];
+
+        foreach ($sentences as $sentence) {
+            $words = preg_split('/\s+/', preg_replace('/[^\pL\pN\' -]+/u', ' ', $sentence), -1, PREG_SPLIT_NO_EMPTY) ?: [];
+            foreach (array_chunk($words, 4) as $chunk) {
+                $chunks[] = $chunk;
+            }
+        }
+
+        if (empty($chunks)) {
+            $words = preg_split('/\s+/', preg_replace('/[^\pL\pN\' -]+/u', ' ', $script), -1, PREG_SPLIT_NO_EMPTY) ?: [];
+            $chunks = array_chunk($words, 4);
+        }
+
+        return $chunks ?: [[]];
     }
 
     private function runFfmpeg(
@@ -475,7 +557,7 @@ class RenderFinalVideoJob implements ShouldQueue
     private function mediaDuration(string $path): ?float
     {
         $process = new Process([
-            'ffprobe',
+            config('evolink.ffprobe_path', 'ffprobe'),
             '-v',
             'error',
             '-show_entries',

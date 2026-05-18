@@ -29,9 +29,21 @@
                     </div>
 
                     <label class="block">
-                        <span class="text-sm font-medium text-slate-700">Mo ta nhanh <span class="text-slate-400">(khong bat buoc)</span></span>
-                        <textarea v-model="form.product_description" rows="3" class="mt-1 w-full rounded-md border-slate-300 text-sm shadow-sm focus:border-emerald-500 focus:ring-emerald-500" placeholder="Neu muon chinh xac hon, copy 1-2 dong mo ta san pham vao day."></textarea>
+                        <span class="text-sm font-medium text-slate-700">Mo ta / USP noi bat <span class="text-slate-400">(khong bat buoc)</span></span>
+                        <textarea v-model="form.product_description" rows="3" class="mt-1 w-full rounded-md border-slate-300 text-sm shadow-sm focus:border-emerald-500 focus:ring-emerald-500" placeholder="VD: nho gon, gap duoc, de ve sinh, hop phong tro, co 3 ngan rieng."></textarea>
                     </label>
+
+                    <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
+                        <label class="block">
+                            <span class="text-sm font-medium text-slate-700">Pain point nguoi mua</span>
+                            <textarea v-model="form.product_pain_points" rows="3" class="mt-1 w-full rounded-md border-slate-300 text-sm shadow-sm focus:border-emerald-500 focus:ring-emerald-500" placeholder="VD: bep nho hay bi lung tung, tim do lau, mat thoi gian don."></textarea>
+                        </label>
+
+                        <label class="block">
+                            <span class="text-sm font-medium text-slate-700">Review / bang chung neu co</span>
+                            <textarea v-model="form.product_reviews" rows="3" class="mt-1 w-full rounded-md border-slate-300 text-sm shadow-sm focus:border-emerald-500 focus:ring-emerald-500" placeholder="VD: nhieu nguoi khen chac, de lap, anh that nhin giong mo ta."></textarea>
+                        </label>
+                    </div>
 
                     <label class="block">
                         <span class="text-sm font-medium text-slate-700">Anh san pham (toi thieu 3 anh, nen 4-5 anh)</span>
@@ -45,9 +57,9 @@
                             <label class="block">
                                 <span class="text-sm font-medium text-slate-700">Mode</span>
                                 <select v-model="form.generation_mode" class="mt-1 w-full rounded-md border-slate-300 text-sm shadow-sm focus:border-emerald-500 focus:ring-emerald-500">
-                                    <option value="fast_test">Mode 1 - Fast Test</option>
-                                    <option value="premium_product">Mode 2 - Premium Product</option>
-                                    <option value="winner_scale">Mode 3 - Winner Scale</option>
+                                    <option value="fast_test">Mode 1 - Fast Test: nhanh, test hook</option>
+                                    <option value="premium_product">Mode 2 - Premium Product: visual dep hon</option>
+                                    <option value="winner_scale">Mode 3 - Winner Scale: tap trung ra don</option>
                                 </select>
                             </label>
 
@@ -59,6 +71,16 @@
                             <label class="block md:col-span-2">
                                 <span class="text-sm font-medium text-slate-700">Link TikTok Shop <span class="text-slate-400">(chi de luu lai, khong dua vao video)</span></span>
                                 <input v-model="form.product_url" type="url" class="mt-1 w-full rounded-md border-slate-300 text-sm shadow-sm focus:border-emerald-500 focus:ring-emerald-500" placeholder="https://..." />
+                            </label>
+
+                            <label class="block">
+                                <span class="text-sm font-medium text-slate-700">Gia / khoang gia</span>
+                                <input v-model="form.product_price" type="text" class="mt-1 w-full rounded-md border-slate-300 text-sm shadow-sm focus:border-emerald-500 focus:ring-emerald-500" placeholder="VD: duoi 200k, 199k-249k" />
+                            </label>
+
+                            <label class="block">
+                                <span class="text-sm font-medium text-slate-700">Hoa hong / uu tien noi bo</span>
+                                <input v-model="form.commission_rate" type="text" class="mt-1 w-full rounded-md border-slate-300 text-sm shadow-sm focus:border-emerald-500 focus:ring-emerald-500" placeholder="VD: 12%, uu tien scale neu ra don" />
                             </label>
                         </div>
                     </details>
@@ -104,6 +126,10 @@ const form = useForm({
     product_name: '',
     product_url: '',
     product_description: '',
+    product_price: '',
+    product_pain_points: '',
+    product_reviews: '',
+    commission_rate: '',
     generation_mode: 'fast_test',
     total_videos: 1,
     duration_seconds: 20,

@@ -9,6 +9,7 @@ use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Facades\Http;
+use App\Support\AffiliateCreativeBrief;
 use App\Support\ShortVideoCreativeBrief;
 use RuntimeException;
 
@@ -77,6 +78,25 @@ class GenerateMediaJob implements ShouldQueue
 
     private function buildVideoPrompt(int $duration): string
     {
+        if ($this->video->video_type === 'affiliate') {
+            $brief = AffiliateCreativeBrief::forVariation(
+                (string) ($this->video->generation_mode ?: 'fast_test'),
+                max(0, (int) $this->video->id)
+            );
+
+            return implode(', ', [
+                "A {$duration}-second seamless cinematic vertical 9:16 TikTok Shop affiliate product B-roll sequence",
+                "Product: {$this->video->product_name}",
+                "Product notes: " . ($this->video->product_description ?: 'use only safe visible context, do not invent specific claims'),
+                "Buyer pain point: " . ($this->video->product_pain_points ?: $brief['angle']),
+                "Creative mode: {$brief['mode_label']}, {$brief['goal']}",
+                "Visual style: {$brief['visual_style']}",
+                "Shot language: product close-ups, practical use-case, before-after feeling, clear hero product framing, natural TikTok review pacing",
+                "Style: photorealistic, believable, high detail, social commerce ad, attractive but not overproduced",
+                "Absolutely no logos, no watermarks, no subtitles, no readable text, no letters, no UI elements, no fake hands, no people unless the source product clearly requires scale context",
+            ]);
+        }
+
         $brief = ShortVideoCreativeBrief::for($this->video);
         $tone = $this->video->video_type === 'affiliate'
             ? 'mysterious, persuasive, premium'
